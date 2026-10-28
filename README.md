@@ -1,23 +1,12 @@
----
-title: AI4I 2020 Failure Prediction
-emoji: ⚙️
-colorFrom: blue
-colorTo: gray
-sdk: gradio
-sdk_version: 6.31.0
-python_version: "3.12"
-app_file: app.py
-pinned: false
-short_description: Machine failure prediction on the AI4I 2020 dataset
----
-
 # Machine Failure Prediction with Engineering Features (AI4I 2020)
 
 A predictive maintenance study on the public AI4I 2020 dataset. The question is simple: given the process conditions of a milling operation, will the machine fail?
 
 The study compares a model that sees only the raw sensor values with a model that also receives three physical quantities a maintenance engineer would look at first: temperature difference, mechanical power and tool load. A rule set taken directly from the dataset documentation is included as a reference point.
 
-**Live demo:** the Gradio app in this repository (`app.py`) runs as a Hugging Face Space.
+**Live demo:** [Hugging Face Space](https://huggingface.co/spaces/ALP-hface/ai4i-failure-prediction) and [GitHub Pages](https://alp-gthub.github.io/ai4i-predictive-maintenance/). The demo runs entirely in the browser. Its predictions were checked against the Python model on all 10,000 dataset rows and 20,000 random inputs with no decision differences (`results/web_export_check.json`).
+
+**Model:** [ALP-hface/ai4i-failure-prediction-model](https://huggingface.co/ALP-hface/ai4i-failure-prediction-model) on Hugging Face.
 
 ## Data
 
@@ -78,7 +67,7 @@ The model receives these quantities but not the thresholds. It has to learn wher
 
 1. Logistic regression on raw measurements (baseline)
 2. Gradient boosting (scikit-learn `HistGradientBoostingClassifier`) on raw measurements
-3. Gradient boosting on raw measurements plus engineered features (deployed in the demo)
+3. Gradient boosting on raw measurements plus engineered features (used in the demo)
 4. Documented physical rules applied directly (reference, no learning)
 
 **Evaluation.** 20 % of the data is held out as a stratified test set and is not touched during training. Five-fold cross-validation on the remaining 80 % checks how stable the results are. Failures are rare (339 of 10,000 rows), so accuracy is not reported. It would be 96.6 % for a model that never predicts a failure.
@@ -138,7 +127,8 @@ pip install -r requirements.txt
 python -m src.train --data data/ai4i2020.csv   # trains, writes model/ and results/
 python -m src.report                            # writes the results tables into this README
 python -m src.plot                              # draws results/caught_by_mode.png
-python app.py                                   # starts the demo locally
+python -m src.export_web                        # exports the model to docs/ and checks it (needs Node.js)
+python app.py                                   # optional: Gradio version of the demo, runs locally
 ```
 
 Tested with Python 3.12.3 and the versions pinned in `requirements.txt`.
@@ -146,16 +136,20 @@ Tested with Python 3.12.3 and the versions pinned in `requirements.txt`.
 ## Repository structure
 
 ```
-app.py                  Gradio demo
+docs/                   browser demo (Hugging Face Space and GitHub Pages)
+app.py                  Gradio version of the demo, for local use
 src/features.py         input columns, engineered features, documented rules
 src/train.py            training and evaluation
-src/report.py           writes results tables into README.md
+src/report.py           writes results tables into README.md and the model card
 src/plot.py             draws the results chart
+src/export_web.py       exports the model for the browser and checks it against Python
+src/check_web_model.js  runs the browser predictor in Node.js for that check
 data/ai4i2020.csv       official dataset file (CC BY 4.0)
 model/model.joblib      trained model used by the demo
 results/metrics.json    every reported number
 results/caught_by_mode.png  results chart
-.github/              workflow and script that sync to the Hugging Face Space
+results/web_export_check.json  browser vs Python comparison
+.github/                workflow and script that publish to Hugging Face
 ```
 
 ## Türkçe özet

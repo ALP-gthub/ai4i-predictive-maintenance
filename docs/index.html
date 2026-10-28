@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI4I 2020 Failure Prediction</title>
+<meta name="description" content="Machine failure prediction on the AI4I 2020 dataset, comparing raw sensor data with physics-based engineering features.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div><b>AI4I 2020 Failure Prediction</b><small>Predictive maintenance • Gradient boosting • Engineering features</small></div>
+  <a class="pill" href="https://github.com/ALP-gthub/ai4i-predictive-maintenance">Source on GitHub</a>
+</header>
+
+<main>
+  <section class="hero">
+    <small>MACHINE LEARNING STUDY 01</small>
+    <h1>Will this process fail?</h1>
+    <p>Enter the conditions of a milling process. A gradient boosting model trained on the public AI4I 2020 dataset estimates the failure probability, and the documented physical failure conditions are checked next to it. Everything runs in your browser.</p>
+  </section>
+
+  <section class="grid">
+    <form class="card" id="form" novalidate>
+      <h2>1. Process conditions</h2>
+      <div class="presets" aria-label="Example cases">
+        <span>Examples:</span>
+        <button type="button" data-preset="normal">Normal</button>
+        <button type="button" data-preset="heat">Heat dissipation</button>
+        <button type="button" data-preset="strain">Overstrain</button>
+        <button type="button" data-preset="power">Low power</button>
+      </div>
+      <label>Product quality type
+        <select id="type"><option value="L">L (low)</option><option value="M">M (medium)</option><option value="H">H (high)</option></select>
+      </label>
+      <label>Air temperature<input id="air" type="number" step="0.1" required><i>K</i></label>
+      <label>Process temperature<input id="process" type="number" step="0.1" required><i>K</i></label>
+      <label>Rotational speed<input id="speed" type="number" step="1" min="0" required><i>rpm</i></label>
+      <label>Torque<input id="torque" type="number" step="0.1" min="0" required><i>Nm</i></label>
+      <label>Tool wear<input id="wear" type="number" step="1" min="0" required><i>min</i></label>
+      <button type="submit">PREDICT</button>
+      <p class="error" id="error" role="alert" hidden></p>
+    </form>
+
+    <section class="card" aria-live="polite">
+      <div class="resulthead">
+        <div><small>RESULT</small><h2>Model estimate</h2></div>
+        <strong id="badge">Waiting for input</strong>
+      </div>
+      <div class="probability">
+        <span>Failure probability</span>
+        <b id="prob">–</b>
+        <div class="track"><div id="bar"></div></div>
+        <small>Decision threshold 50 %</small>
+      </div>
+      <h3>Engineering check</h3>
+      <table class="checks">
+        <thead><tr><th>Failure mode</th><th>Value</th><th>Documented condition</th><th>Status</th></tr></thead>
+        <tbody id="checks"></tbody>
+      </table>
+      <p class="note">Tool wear failures (TWF) and random failures (RNF) are assigned at random in the dataset, so neither the model nor a rule can predict them.</p>
+    </section>
+  </section>
+
+  <section class="card study">
+    <h2>2. How the model was evaluated</h2>
+    <p id="split" class="muted"></p>
+    <div class="tablewrap">
+      <table class="results">
+        <thead><tr><th>Approach</th><th>Precision</th><th>Recall</th><th>F1</th><th>Missed failures</th><th>False alarms</th></tr></thead>
+        <tbody id="results"></tbody>
+      </table>
+    </div>
+    <img src="caught_by_mode.png" alt="Bar chart: share of actual test failures caught by failure mode, for gradient boosting with raw measurements and with engineered features.">
+    <p class="muted" id="webcheck"></p>
+  </section>
+
+  <div class="warning"><b>Scope:</b> the AI4I 2020 dataset is synthetic and its failures follow fixed rules. The model and the thresholds shown here belong to that dataset, not to any real machine. This page is for learning and demonstration.</div>
+</main>
+
+<footer>
+  Data: AI4I 2020 Predictive Maintenance Dataset, UCI Machine Learning Repository, <a href="https://doi.org/10.24432/C5HS5C">doi.org/10.24432/C5HS5C</a>, CC BY 4.0.
+  Study and page: ALP ATA. Code: <a href="https://github.com/ALP-gthub/ai4i-predictive-maintenance">github.com/ALP-gthub/ai4i-predictive-maintenance</a>
+</footer>
+
+<script src="model.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
