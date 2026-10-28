@@ -8,6 +8,10 @@ Run by .github/workflows/publish-to-hf.yml.
    model/model.joblib, its card model/README.md and src/features.py, which
    the saved pipeline imports when it is loaded.
 
+After each upload the Hugging Face history is squashed to a single commit.
+The full history is kept on GitHub; the Hub only holds the current version,
+so files removed or changed on GitHub do not stay readable there.
+
 Every check writes a GitHub annotation, so results are visible on the run's
 summary page without opening the full log. The token is never printed.
 """
@@ -40,7 +44,8 @@ def publish_space(api, space_id, sha):
         folder_path="docs",
         commit_message=f"Sync from GitHub {sha}",
     )
-    note("notice", "Space updated", commit.commit_url)
+    api.super_squash_history(space_id, repo_type="space", commit_message=f"Current version, GitHub {sha}")
+    note("notice", "Space updated", f"{commit.commit_url} (history squashed)")
 
 
 def publish_model(api, model_id, sha):
@@ -57,7 +62,8 @@ def publish_model(api, model_id, sha):
         operations=[CommitOperationAdd(path_in_repo=k, path_or_fileobj=v) for k, v in files.items()],
         commit_message=f"Sync from GitHub {sha}",
     )
-    note("notice", "Model updated", commit.commit_url)
+    api.super_squash_history(model_id, repo_type="model", commit_message=f"Current version, GitHub {sha}")
+    note("notice", "Model updated", f"{commit.commit_url} (history squashed)")
 
 
 def main():
