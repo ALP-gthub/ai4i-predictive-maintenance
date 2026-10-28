@@ -76,6 +76,7 @@ def build(r):
 
 
 MODEL_CARD = """---
+license: mit
 library_name: sklearn
 pipeline_tag: tabular-classification
 tags:
@@ -129,6 +130,10 @@ The dataset is synthetic and its failures follow fixed rules. The scores above d
 ## Data and citation
 
 AI4I 2020 Predictive Maintenance Dataset [Dataset]. (2020). UCI Machine Learning Repository. https://doi.org/10.24432/C5HS5C. License: CC BY 4.0.
+
+## License
+
+Model and code: MIT License. Training data: CC BY 4.0 (UCI, see above).
 
 ## Author
 

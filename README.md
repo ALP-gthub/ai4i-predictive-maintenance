@@ -152,6 +152,11 @@ results/web_export_check.json  browser vs Python comparison
 .github/                workflow and script that publish to Hugging Face
 ```
 
+## License
+
+* Code (everything except `data/`): MIT License, see [`LICENSE`](LICENSE).
+* Data (`data/ai4i2020.csv`): AI4I 2020 Predictive Maintenance Dataset, UCI Machine Learning Repository, Creative Commons Attribution 4.0 International (CC BY 4.0). The file is redistributed unchanged, with the attribution given above.
+
 ## Türkçe özet
 
 Bu çalışma, kamuya açık AI4I 2020 kestirimci bakım veri setinde bir freze operasyonunun arızaya gidip gitmeyeceğini tahmin ediyor. Yalnızca ham sensör değerlerini gören bir model ile, bakım mühendisinin ilk bakacağı üç fiziksel büyüklüğü de alan bir model karşılaştırılıyor: proses ve ortam sıcaklık farkı, mekanik güç (tork × açısal hız) ve takım yükü (aşınma × tork).
