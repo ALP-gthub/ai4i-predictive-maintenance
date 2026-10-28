@@ -155,7 +155,7 @@ data/ai4i2020.csv       official dataset file (CC BY 4.0)
 model/model.joblib      trained model used by the demo
 results/metrics.json    every reported number
 results/caught_by_mode.png  results chart
-.github/workflows/      sync to Hugging Face Space
+.github/              workflow and script that sync to the Hugging Face Space
 ```
 
 ## Türkçe özet
