@@ -1,11 +1,163 @@
 // Page logic for the AI4I 2020 demo. The model itself is in model.js / model.json.
+// The page is bilingual (English / Turkish). Temperatures are entered in °C and
+// converted to kelvin, the unit the model and the dataset use.
 (function () {
   "use strict";
 
   const $ = (id) => document.getElementById(id);
-  const fields = ["air", "process", "speed", "torque", "wear"];
 
-  // Example inputs. Each one triggers the named documented condition.
+  // ---------- Text ----------
+  const TEXT = {
+    en: {
+      doc_title: "AI4I 2020 Failure Prediction",
+      site_title: "AI4I 2020 Failure Prediction",
+      site_sub: "Predictive maintenance • Gradient boosting • Engineering features",
+      source: "Source on GitHub",
+      kicker: "MACHINE LEARNING THROUGH AN ENGINEER'S EYES",
+      hero_h1: "Same data. Same algorithm. The difference was the question.",
+      hero_p: "A failure prediction model was trained twice on the same data. The second time, it also received three values an experienced maintenance engineer checks first: temperature difference, mechanical power and tool load. Nothing else changed.",
+      stat_missed: "Missed failures",
+      stat_false: "False alarms",
+      stat_phys: "Failures with a physical cause, caught",
+      stats_note: (s) => `Held-out test set of ${s.rows} records the model never saw, with ${s.failures} real failures.`,
+      try_h2: "Try it yourself",
+      try_p: "Enter the conditions of a milling process. The model estimates the failure probability, and the documented physical failure conditions are checked next to it. Everything runs in your browser.",
+      examples: "Examples:",
+      p_normal: "Normal",
+      p_heat: "Heat dissipation",
+      p_strain: "Overstrain",
+      p_power: "Low power",
+      l_type: "Product quality type",
+      t_L: "L (low)",
+      t_M: "M (medium)",
+      t_H: "H (high)",
+      l_air: "Air temperature",
+      l_process: "Process temperature",
+      l_speed: "Rotational speed",
+      l_torque: "Torque",
+      l_wear: "Tool wear",
+      k_hint: (k) => `= ${k} K, the unit the model uses`,
+      predict: "PREDICT",
+      result_kicker: "RESULT",
+      result_h2: "Model estimate",
+      waiting: "Waiting for input",
+      fail: "Failure expected",
+      ok: "No failure expected",
+      prob_label: "Failure probability",
+      threshold: "Decision threshold 50 %",
+      check_h3: "Engineering check",
+      th_mode: "Failure mode",
+      th_value: "Value",
+      th_cond: "Documented condition",
+      th_status: "Status",
+      m_hdf: "Heat dissipation (HDF)",
+      m_pwf: "Power (PWF)",
+      m_osf: "Overstrain (OSF)",
+      c_hdf: "ΔT &lt; 8.6 K and speed &lt; 1,380 rpm",
+      c_pwf: "below 3,500 W or above 9,000 W",
+      c_osf: (lim, t) => `above ${lim} min·Nm for type ${t}`,
+      triggered: "✕ Triggered",
+      not_met: "✓ Not met",
+      random_note: "Tool wear failures (TWF) and random failures (RNF) are assigned at random in the dataset, so neither the model nor a rule can predict them.",
+      eval_h2: "How the model was evaluated",
+      split: (s) => `Held-out test set of ${s.rows} rows (${s.failures} actual failures), not used in training. Stratified split, seed ${s.seed}.`,
+      th_approach: "Approach",
+      th_precision: "Precision",
+      th_recall: "Recall",
+      th_missed: "Missed failures",
+      th_false: "False alarms",
+      a_logistic_raw: "Logistic regression, raw measurements",
+      a_boosting_raw: "Gradient boosting, raw measurements",
+      a_boosting_engineered: "Gradient boosting, raw + engineered features (this page)",
+      a_documented_rules: "Documented physical rules (reference, no learning)",
+      webcheck: (c) => `Browser check: this page was compared with the Python model on ${c.rows} dataset rows and ${c.random} random inputs. Decision differences: ${c.mismatch}. Largest probability difference: ${c.diff}.`,
+      scope: "<b>Scope:</b> the AI4I 2020 dataset is synthetic and its failures follow fixed rules. The model and the thresholds shown here belong to that dataset, not to any real machine. This page is for learning and demonstration.",
+      footer: 'Data: AI4I 2020 Predictive Maintenance Dataset, UCI Machine Learning Repository, <a href="https://doi.org/10.24432/C5HS5C">doi.org/10.24432/C5HS5C</a>, CC BY 4.0. Study and page: ALP ATA. Code: <a href="https://github.com/ALP-gthub/ai4i-predictive-maintenance">github.com/ALP-gthub/ai4i-predictive-maintenance</a>',
+      err_fill: "Please fill in every field with a number.",
+      err_load: "The model could not be loaded: ",
+    },
+    tr: {
+      doc_title: "AI4I 2020 Arıza Tahmini",
+      site_title: "AI4I 2020 Arıza Tahmini",
+      site_sub: "Kestirimci bakım • Gradient boosting • Mühendislik özellikleri",
+      source: "GitHub'da kaynak kod",
+      kicker: "MÜHENDİS GÖZÜYLE MAKİNE ÖĞRENMESİ",
+      hero_h1: "Aynı veri. Aynı algoritma. Farkı yaratan soruydu.",
+      hero_p: "Bir arıza tahmin modeli aynı veriyle iki kez eğitildi. İkincisinde, deneyimli bir bakım mühendisinin ilk baktığı üç değer de modele verildi: sıcaklık farkı, mekanik güç ve takım yükü. Başka hiçbir şey değişmedi.",
+      stat_missed: "Kaçırılan arıza",
+      stat_false: "Yanlış alarm",
+      stat_phys: "Fiziksel nedenli arızalardan yakalanan",
+      stats_note: (s) => `Modelin hiç görmediği ${s.rows} kayıtlık test seti, ${s.failures} gerçek arıza.`,
+      try_h2: "Kendiniz deneyin",
+      try_p: "Bir freze prosesinin koşullarını girin. Model arıza olasılığını tahmin eder; yanında veri setinde belgelenen fiziksel arıza koşulları kontrol edilir. Tüm hesaplama tarayıcınızda yapılır.",
+      examples: "Örnekler:",
+      p_normal: "Normal",
+      p_heat: "Isı dağılımı",
+      p_strain: "Aşırı zorlanma",
+      p_power: "Düşük güç",
+      l_type: "Ürün kalite tipi",
+      t_L: "L (düşük)",
+      t_M: "M (orta)",
+      t_H: "H (yüksek)",
+      l_air: "Ortam havası sıcaklığı",
+      l_process: "Proses sıcaklığı",
+      l_speed: "Devir hızı",
+      l_torque: "Tork",
+      l_wear: "Takım aşınması (kullanım süresi)",
+      k_hint: (k) => `= ${k} K, modelin kullandığı birim`,
+      predict: "TAHMİN ET",
+      result_kicker: "SONUÇ",
+      result_h2: "Model tahmini",
+      waiting: "Girdi bekleniyor",
+      fail: "Arıza bekleniyor",
+      ok: "Arıza beklenmiyor",
+      prob_label: "Arıza olasılığı",
+      threshold: "Karar eşiği %50",
+      check_h3: "Mühendislik kontrolü",
+      th_mode: "Arıza türü",
+      th_value: "Değer",
+      th_cond: "Belgelenen koşul",
+      th_status: "Durum",
+      m_hdf: "Isı dağılımı (HDF)",
+      m_pwf: "Güç (PWF)",
+      m_osf: "Aşırı zorlanma (OSF)",
+      c_hdf: "ΔT &lt; 8,6 K ve devir &lt; 1.380 rpm",
+      c_pwf: "3.500 W altı veya 9.000 W üstü",
+      c_osf: (lim, t) => `${t} tipi için ${lim} min·Nm üstü`,
+      triggered: "✕ Tetiklendi",
+      not_met: "✓ Sağlanmadı",
+      random_note: "Takım aşınması (TWF) ve rastgele arızalar (RNF) veri setinde rastgele atanır; bu yüzden ne model ne de bir kural bunları tahmin edebilir.",
+      eval_h2: "Model nasıl değerlendirildi",
+      split: (s) => `Eğitimde kullanılmayan ${s.rows} satırlık test seti (${s.failures} gerçek arıza). Tabakalı bölme, tohum değeri ${s.seed}.`,
+      th_approach: "Yaklaşım",
+      th_precision: "Kesinlik",
+      th_recall: "Duyarlılık",
+      th_missed: "Kaçırılan arıza",
+      th_false: "Yanlış alarm",
+      a_logistic_raw: "Lojistik regresyon, ham ölçümler",
+      a_boosting_raw: "Gradient boosting, ham ölçümler",
+      a_boosting_engineered: "Gradient boosting, ham ölçümler + mühendislik özellikleri (bu sayfa)",
+      a_documented_rules: "Belgelenen fiziksel kurallar (referans, öğrenme yok)",
+      webcheck: (c) => `Tarayıcı kontrolü: Bu sayfa, Python modeliyle ${c.rows} veri satırında ve ${c.random} rastgele girdide karşılaştırıldı. Karar farkı: ${c.mismatch}. En büyük olasılık farkı: ${c.diff}.`,
+      scope: "<b>Kapsam:</b> AI4I 2020 veri seti sentetiktir ve arızaları sabit kurallarla üretilmiştir. Burada gösterilen model ve eşikler bu veri setine aittir, gerçek bir makineye ait değildir. Bu sayfa öğrenme ve tanıtım amaçlıdır.",
+      footer: 'Veri: AI4I 2020 Predictive Maintenance Dataset, UCI Machine Learning Repository, <a href="https://doi.org/10.24432/C5HS5C">doi.org/10.24432/C5HS5C</a>, CC BY 4.0. Çalışma ve sayfa: ALP ATA. Kod: <a href="https://github.com/ALP-gthub/ai4i-predictive-maintenance">github.com/ALP-gthub/ai4i-predictive-maintenance</a>',
+      err_fill: "Lütfen her alana bir sayı girin.",
+      err_load: "Model yüklenemedi: ",
+    },
+  };
+
+  let lang = "en";
+  const t = (key) => TEXT[lang][key];
+  const locale = () => (lang === "tr" ? "tr-TR" : "en-US");
+  const fmt = (x, d) =>
+    Number(x).toLocaleString(locale(), { minimumFractionDigits: d, maximumFractionDigits: d });
+  const pct = (x) => (lang === "tr" ? "%" + fmt(x * 100, 1) : fmt(x * 100, 1) + " %");
+
+  // ---------- Temperature: °C on screen, kelvin for the model ----------
+  const toK = AI4I.toK;
+  const toC = AI4I.toC;
+
+  // Example inputs, stored in kelvin as in the dataset. Each one triggers the named documented condition.
   const PRESETS = {
     normal: { type: "L", air: 300.0, process: 310.0, speed: 1500, torque: 40.0, wear: 100 },
     heat: { type: "L", air: 302.0, process: 310.2, speed: 1300, torque: 55.0, wear: 20 },
@@ -14,44 +166,54 @@
   };
 
   let model = null;
-
-  const fmt = (x, d) =>
-    Number(x).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
-  const pct = (x) => fmt(x * 100, 1) + " %";
+  let metrics = null;
+  let check = null;
+  let lastInput = null;
 
   function setInputs(p) {
     $("type").value = p.type;
-    fields.forEach((f) => ($(f).value = p[f]));
+    $("airC").value = toC(p.air);
+    $("processC").value = toC(p.process);
+    ["speed", "torque", "wear"].forEach((f) => ($(f).value = p[f]));
+    updateKHints();
+  }
+
+  function num(id) {
+    const raw = $(id).value.trim();
+    const v = Number(raw);
+    return raw === "" || !Number.isFinite(v) ? null : v;
   }
 
   function readInputs() {
-    const input = { type: $("type").value };
-    for (const f of fields) {
-      const raw = $(f).value.trim();
-      const v = Number(raw);
-      if (raw === "" || !Number.isFinite(v)) return null;
-      input[f] = v;
-    }
-    return input;
+    const vals = { airC: num("airC"), processC: num("processC"), speed: num("speed"), torque: num("torque"), wear: num("wear") };
+    if (Object.values(vals).some((v) => v === null)) return null;
+    return {
+      type: $("type").value,
+      air: toK(vals.airC),
+      process: toK(vals.processC),
+      speed: vals.speed,
+      torque: vals.torque,
+      wear: vals.wear,
+    };
   }
 
-  function statusCell(triggered) {
-    return triggered
-      ? '<span class="status trig">✕ Triggered</span>'
-      : '<span class="status ok">✓ Not met</span>';
+  function updateKHints() {
+    [["airC", "airK"], ["processC", "processK"]].forEach(([inp, out]) => {
+      const c = num(inp);
+      $(out).textContent = c === null ? "" : t("k_hint")(fmt(toK(c), 2));
+    });
   }
 
-  function predict(event) {
-    if (event) event.preventDefault();
-    const input = readInputs();
-    const error = $("error");
+  const status = (on) =>
+    on ? `<span class="status trig">${t("triggered")}</span>` : `<span class="status ok">${t("not_met")}</span>`;
+
+  function render(input) {
+    const badge = $("badge");
     if (!input) {
-      error.textContent = "Please fill in every field with a number.";
-      error.hidden = false;
+      badge.textContent = t("waiting");
+      badge.className = "";
       return;
     }
-    error.hidden = true;
-
     const p = AI4I.predictProbability(model, input);
     const c = AI4I.documentedChecks(input);
     const fail = p >= 0.5;
@@ -59,51 +221,124 @@
     $("prob").textContent = pct(p);
     $("bar").style.width = Math.min(100, p * 100) + "%";
     $("bar").style.background = fail ? "var(--bad)" : "var(--accent)";
-    const badge = $("badge");
-    badge.textContent = fail ? "Failure expected" : "No failure expected";
+    badge.textContent = fail ? t("fail") : t("ok");
     badge.className = fail ? "fail" : "ok";
 
+    const speed = fmt(input.speed, 0);
     $("checks").innerHTML = [
-      ["Heat dissipation (HDF)", `ΔT ${fmt(c.e.tempDiff, 1)} K, ${fmt(input.speed, 0)} rpm`, "ΔT &lt; 8.6 K and speed &lt; 1,380 rpm", c.hdf],
-      ["Power (PWF)", `${fmt(c.e.power, 0)} W`, "below 3,500 W or above 9,000 W", c.pwf],
-      ["Overstrain (OSF)", `${fmt(c.e.strain, 0)} min·Nm`, `above ${fmt(c.osfLimit, 0)} min·Nm for type ${input.type}`, c.osf],
+      [t("m_hdf"), `ΔT ${fmt(c.e.tempDiff, 1)} K, ${speed} rpm`, t("c_hdf"), c.hdf],
+      [t("m_pwf"), `${fmt(c.e.power, 0)} W`, t("c_pwf"), c.pwf],
+      [t("m_osf"), `${fmt(c.e.strain, 0)} min·Nm`, t("c_osf")(fmt(c.osfLimit, 0), input.type), c.osf],
     ]
-      .map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${statusCell(r[3])}</td></tr>`)
+      .map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${status(r[3])}</td></tr>`)
       .join("");
   }
 
-  const NAMES = {
-    logistic_raw: "Logistic regression, raw measurements",
-    boosting_raw: "Gradient boosting, raw measurements",
-    boosting_engineered: "Gradient boosting, raw + engineered features (this page)",
-    documented_rules: "Documented physical rules (reference, no learning)",
-  };
+  function predict(event) {
+    if (event) event.preventDefault();
+    updateKHints();
+    const input = readInputs();
+    const error = $("error");
+    if (!input) {
+      error.textContent = t("err_fill");
+      error.hidden = false;
+      return;
+    }
+    error.hidden = true;
+    lastInput = input;
+    render(input);
+  }
 
-  function renderStudy(metrics, check) {
+  // Failures whose mode flags include HDF, PWF or OSF: the ones with a physical cause.
+  function physical(groups) {
+    let caught = 0;
+    let total = 0;
+    Object.keys(groups).forEach((g) => {
+      if (/HDF|PWF|OSF/.test(g)) {
+        caught += groups[g].caught;
+        total += groups[g].failures;
+      }
+    });
+    return { caught, total };
+  }
+
+  const APPROACHES = ["logistic_raw", "boosting_raw", "boosting_engineered", "documented_rules"];
+
+  function renderStudy() {
     const s = metrics.split;
-    $("split").textContent =
-      `Held-out test set of ${fmt(s.test_rows, 0)} rows (${s.test_failures} actual failures), ` +
-      `not used in training. Stratified split, seed ${s.seed}.`;
-    $("results").innerHTML = Object.keys(NAMES)
-      .map((k) => {
-        const t = metrics.test[k];
-        const cls = k === "boosting_engineered" ? ' class="best"' : "";
-        return `<tr${cls}><td>${NAMES[k]}</td><td>${pct(t.precision)}</td><td>${pct(t.recall)}</td>` +
-          `<td>${fmt(t.f1, 3)}</td><td>${t.fn}</td><td>${t.fp}</td></tr>`;
-      })
-      .join("");
-    $("webcheck").textContent =
-      `Browser check: this page was compared with the Python model on ${fmt(check.dataset_rows_compared, 0)} dataset rows ` +
-      `and ${fmt(check.random_rows_compared, 0)} random inputs. Decision differences: ${check.decision_mismatches_at_0_5}. ` +
-      `Largest probability difference: ${check.max_abs_probability_difference.toExponential(1)}.`;
+    const raw = metrics.test.boosting_raw;
+    const eng = metrics.test.boosting_engineered;
+    const phys = physical(metrics.test_caught_by_failure_mode.boosting_engineered);
+    const sizes = { rows: fmt(s.test_rows, 0), failures: s.test_failures, seed: s.seed };
+
+    $("missedRaw").textContent = raw.fn;
+    $("missedEng").textContent = eng.fn;
+    $("fpRaw").textContent = raw.fp;
+    $("fpEng").textContent = eng.fp;
+    $("physCaught").textContent = phys.caught;
+    $("physTotal").textContent = phys.total;
+    $("statsNote").textContent = t("stats_note")(sizes);
+    $("split").textContent = t("split")(sizes);
+
+    $("results").innerHTML = APPROACHES.map((k) => {
+      const r = metrics.test[k];
+      const cls = k === "boosting_engineered" ? ' class="best"' : "";
+      return `<tr${cls}><td>${t("a_" + k)}</td><td>${pct(r.precision)}</td><td>${pct(r.recall)}</td>` +
+        `<td>${fmt(r.f1, 3)}</td><td>${r.fn}</td><td>${r.fp}</td></tr>`;
+    }).join("");
+
+    $("webcheck").textContent = t("webcheck")({
+      rows: fmt(check.dataset_rows_compared, 0),
+      random: fmt(check.random_rows_compared, 0),
+      mismatch: check.decision_mismatches_at_0_5,
+      diff: check.max_abs_probability_difference.toExponential(1).replace(".", lang === "tr" ? "," : "."),
+    });
+  }
+
+  function applyLanguage(next) {
+    lang = next;
+    document.documentElement.lang = lang;
+    document.title = t("doc_title");
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+      el.innerHTML = t(el.dataset.i18nHtml);
+    });
+    document.querySelectorAll("[data-lang]").forEach((b) => {
+      b.setAttribute("aria-pressed", String(b.dataset.lang === lang));
+    });
+    try {
+      localStorage.setItem("ai4i-lang", lang);
+    } catch (e) {
+      /* storage unavailable: the choice is simply not remembered */
+    }
+    updateKHints();
+    if (metrics) renderStudy();
+    if (model) render(lastInput);
+  }
+
+  function initialLanguage() {
+    try {
+      const saved = localStorage.getItem("ai4i-lang");
+      if (saved === "tr" || saved === "en") return saved;
+    } catch (e) {
+      /* ignore */
+    }
+    return (navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en";
   }
 
   async function init() {
-    const [m, metrics, check] = await Promise.all(
+    applyLanguage(initialLanguage());
+    document.querySelectorAll("[data-lang]").forEach((b) =>
+      b.addEventListener("click", () => applyLanguage(b.dataset.lang))
+    );
+    ["airC", "processC"].forEach((id) => $(id).addEventListener("input", updateKHints));
+
+    [model, metrics, check] = await Promise.all(
       ["model.json", "metrics.json", "web_export_check.json"].map((u) => fetch(u).then((r) => r.json()))
     );
-    model = m;
-    renderStudy(metrics, check);
+    renderStudy();
     document.querySelectorAll("[data-preset]").forEach((b) =>
       b.addEventListener("click", () => {
         setInputs(PRESETS[b.dataset.preset]);
@@ -116,7 +351,7 @@
   }
 
   init().catch((e) => {
-    $("error").textContent = "The model could not be loaded: " + e.message;
+    $("error").textContent = t("err_load") + e.message;
     $("error").hidden = false;
   });
 })();

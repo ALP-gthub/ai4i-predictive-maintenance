@@ -4,70 +4,94 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI4I 2020 Failure Prediction</title>
-<meta name="description" content="Machine failure prediction on the AI4I 2020 dataset, comparing raw sensor data with physics-based engineering features.">
+<meta name="description" content="Same data, same algorithm: adding three values a maintenance engineer checks first cut missed failures from 21 to 12. Interactive demo on the public AI4I 2020 dataset.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Same data. Same algorithm. The difference was the question.">
+<meta property="og:description" content="Adding three values a maintenance engineer checks first cut missed failures from 21 to 12. Try the model in your browser.">
+<meta property="og:url" content="https://alp-gthub.github.io/ai4i-predictive-maintenance/">
+<meta property="og:image" content="https://alp-gthub.github.io/ai4i-predictive-maintenance/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="An engineer's hands holding a handwritten field notebook in a dark machining workshop.">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
-  <div><b>AI4I 2020 Failure Prediction</b><small>Predictive maintenance • Gradient boosting • Engineering features</small></div>
-  <a class="pill" href="https://github.com/ALP-gthub/ai4i-predictive-maintenance">Source on GitHub</a>
+  <div><b data-i18n="site_title">AI4I 2020 Failure Prediction</b><small data-i18n="site_sub">Predictive maintenance • Gradient boosting • Engineering features</small></div>
+  <div class="headright">
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="tr" aria-pressed="false">TR</button>
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+    </div>
+    <a class="pill" href="https://github.com/ALP-gthub/ai4i-predictive-maintenance" data-i18n="source">Source on GitHub</a>
+  </div>
 </header>
 
 <main>
   <section class="hero">
-    <small>MACHINE LEARNING STUDY 01</small>
-    <h1>Will this process fail?</h1>
-    <p>Enter the conditions of a milling process. A gradient boosting model trained on the public AI4I 2020 dataset estimates the failure probability, and the documented physical failure conditions are checked next to it. Everything runs in your browser.</p>
+    <small data-i18n="kicker">MACHINE LEARNING THROUGH AN ENGINEER'S EYES</small>
+    <h1 data-i18n="hero_h1">Same data. Same algorithm. The difference was the question.</h1>
+    <p data-i18n="hero_p">A failure prediction model was trained twice on the same data. The second time, it also received three values an experienced maintenance engineer checks first: temperature difference, mechanical power and tool load. Nothing else changed.</p>
+    <div class="stats">
+      <article><span data-i18n="stat_missed">Missed failures</span><b><s id="missedRaw">–</s> → <em id="missedEng">–</em></b></article>
+      <article><span data-i18n="stat_false">False alarms</span><b><s id="fpRaw">–</s> → <em id="fpEng">–</em></b></article>
+      <article><span data-i18n="stat_phys">Failures with a physical cause, caught</span><b><em id="physCaught">–</em> / <span id="physTotal">–</span></b></article>
+    </div>
+    <p class="muted" id="statsNote"></p>
   </section>
 
   <section class="grid">
     <form class="card" id="form" novalidate>
-      <h2>1. Process conditions</h2>
-      <div class="presets" aria-label="Example cases">
-        <span>Examples:</span>
-        <button type="button" data-preset="normal">Normal</button>
-        <button type="button" data-preset="heat">Heat dissipation</button>
-        <button type="button" data-preset="strain">Overstrain</button>
-        <button type="button" data-preset="power">Low power</button>
+      <h2 data-i18n="try_h2">Try it yourself</h2>
+      <p class="muted" data-i18n="try_p">Enter the conditions of a milling process. The model estimates the failure probability, and the documented physical failure conditions are checked next to it. Everything runs in your browser.</p>
+      <div class="presets" role="group" aria-label="Examples">
+        <span data-i18n="examples">Examples:</span>
+        <button type="button" data-preset="normal" data-i18n="p_normal">Normal</button>
+        <button type="button" data-preset="heat" data-i18n="p_heat">Heat dissipation</button>
+        <button type="button" data-preset="strain" data-i18n="p_strain">Overstrain</button>
+        <button type="button" data-preset="power" data-i18n="p_power">Low power</button>
       </div>
-      <label>Product quality type
-        <select id="type"><option value="L">L (low)</option><option value="M">M (medium)</option><option value="H">H (high)</option></select>
+      <label><span data-i18n="l_type">Product quality type</span>
+        <select id="type"><option value="L" data-i18n="t_L">L (low)</option><option value="M" data-i18n="t_M">M (medium)</option><option value="H" data-i18n="t_H">H (high)</option></select>
       </label>
-      <label>Air temperature<input id="air" type="number" step="0.1" required><i>K</i></label>
-      <label>Process temperature<input id="process" type="number" step="0.1" required><i>K</i></label>
-      <label>Rotational speed<input id="speed" type="number" step="1" min="0" required><i>rpm</i></label>
-      <label>Torque<input id="torque" type="number" step="0.1" min="0" required><i>Nm</i></label>
-      <label>Tool wear<input id="wear" type="number" step="1" min="0" required><i>min</i></label>
-      <button type="submit">PREDICT</button>
+      <label><span data-i18n="l_air">Air temperature</span><input id="airC" type="number" step="0.01" required><i>°C</i></label>
+      <small class="khint" id="airK"></small>
+      <label><span data-i18n="l_process">Process temperature</span><input id="processC" type="number" step="0.01" required><i>°C</i></label>
+      <small class="khint" id="processK"></small>
+      <label><span data-i18n="l_speed">Rotational speed</span><input id="speed" type="number" step="1" min="0" required><i>rpm</i></label>
+      <label><span data-i18n="l_torque">Torque</span><input id="torque" type="number" step="0.1" min="0" required><i>Nm</i></label>
+      <label><span data-i18n="l_wear">Tool wear</span><input id="wear" type="number" step="1" min="0" required><i>min</i></label>
+      <button type="submit" data-i18n="predict">PREDICT</button>
       <p class="error" id="error" role="alert" hidden></p>
     </form>
 
     <section class="card" aria-live="polite">
       <div class="resulthead">
-        <div><small>RESULT</small><h2>Model estimate</h2></div>
-        <strong id="badge">Waiting for input</strong>
+        <div><small data-i18n="result_kicker">RESULT</small><h2 data-i18n="result_h2">Model estimate</h2></div>
+        <strong id="badge"></strong>
       </div>
       <div class="probability">
-        <span>Failure probability</span>
+        <span data-i18n="prob_label">Failure probability</span>
         <b id="prob">–</b>
         <div class="track"><div id="bar"></div></div>
-        <small>Decision threshold 50 %</small>
+        <small data-i18n="threshold">Decision threshold 50 %</small>
       </div>
-      <h3>Engineering check</h3>
+      <h3 data-i18n="check_h3">Engineering check</h3>
       <table class="checks">
-        <thead><tr><th>Failure mode</th><th>Value</th><th>Documented condition</th><th>Status</th></tr></thead>
+        <thead><tr><th data-i18n="th_mode">Failure mode</th><th data-i18n="th_value">Value</th><th data-i18n="th_cond">Documented condition</th><th data-i18n="th_status">Status</th></tr></thead>
         <tbody id="checks"></tbody>
       </table>
-      <p class="note">Tool wear failures (TWF) and random failures (RNF) are assigned at random in the dataset, so neither the model nor a rule can predict them.</p>
+      <p class="note" data-i18n="random_note">Tool wear failures (TWF) and random failures (RNF) are assigned at random in the dataset, so neither the model nor a rule can predict them.</p>
     </section>
   </section>
 
   <section class="card study">
-    <h2>2. How the model was evaluated</h2>
+    <h2 data-i18n="eval_h2">How the model was evaluated</h2>
     <p id="split" class="muted"></p>
     <div class="tablewrap">
       <table class="results">
-        <thead><tr><th>Approach</th><th>Precision</th><th>Recall</th><th>F1</th><th>Missed failures</th><th>False alarms</th></tr></thead>
+        <thead><tr><th data-i18n="th_approach">Approach</th><th data-i18n="th_precision">Precision</th><th data-i18n="th_recall">Recall</th><th>F1</th><th data-i18n="th_missed">Missed failures</th><th data-i18n="th_false">False alarms</th></tr></thead>
         <tbody id="results"></tbody>
       </table>
     </div>
@@ -75,10 +99,12 @@
     <p class="muted" id="webcheck"></p>
   </section>
 
-  <div class="warning"><b>Scope:</b> the AI4I 2020 dataset is synthetic and its failures follow fixed rules. The model and the thresholds shown here belong to that dataset, not to any real machine. This page is for learning and demonstration.</div>
+  <div class="warning" data-i18n-html="scope">
+    <b>Scope:</b> the AI4I 2020 dataset is synthetic and its failures follow fixed rules. The model and the thresholds shown here belong to that dataset, not to any real machine. This page is for learning and demonstration.
+  </div>
 </main>
 
-<footer>
+<footer data-i18n-html="footer">
   Data: AI4I 2020 Predictive Maintenance Dataset, UCI Machine Learning Repository, <a href="https://doi.org/10.24432/C5HS5C">doi.org/10.24432/C5HS5C</a>, CC BY 4.0.
   Study and page: ALP ATA. Code: <a href="https://github.com/ALP-gthub/ai4i-predictive-maintenance">github.com/ALP-gthub/ai4i-predictive-maintenance</a>
 </footer>

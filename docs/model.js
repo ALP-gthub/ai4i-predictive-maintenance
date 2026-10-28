@@ -72,7 +72,19 @@
     };
   }
 
-  const api = { engineered, featureVector, predictProbability, documentedChecks };
+  // The page takes temperatures in °C; the model and the dataset use kelvin.
+  // Rounding to 0.01 K removes floating point residue, so a dataset value
+  // converted to °C and back is unchanged. src/export_web.py checks this on
+  // every dataset temperature.
+  function toK(celsius) {
+    return Math.round((celsius + 273.15) * 100) / 100;
+  }
+
+  function toC(kelvin) {
+    return Math.round((kelvin - 273.15) * 100) / 100;
+  }
+
+  const api = { engineered, featureVector, predictProbability, documentedChecks, toK, toC };
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   } else {

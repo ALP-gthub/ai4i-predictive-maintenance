@@ -4,7 +4,7 @@ A predictive maintenance study on the public AI4I 2020 dataset. The question is 
 
 The study compares a model that sees only the raw sensor values with a model that also receives three physical quantities a maintenance engineer would look at first: temperature difference, mechanical power and tool load. A rule set taken directly from the dataset documentation is included as a reference point.
 
-**Live demo:** [Hugging Face Space](https://huggingface.co/spaces/ALP-hface/ai4i-failure-prediction) and [GitHub Pages](https://alp-gthub.github.io/ai4i-predictive-maintenance/). The demo runs entirely in the browser. Its predictions were checked against the Python model on all 10,000 dataset rows and 20,000 random inputs with no decision differences (`results/web_export_check.json`).
+**Live demo:** [Hugging Face Space](https://huggingface.co/spaces/ALP-hface/ai4i-failure-prediction) and [GitHub Pages](https://alp-gthub.github.io/ai4i-predictive-maintenance/). The demo runs entirely in the browser, in English or Turkish, with temperatures entered in °C and converted to kelvin for the model. Its predictions were checked against the Python model on all 10,000 dataset rows and 20,000 random inputs with no decision differences (`results/web_export_check.json`).
 
 **Model:** [ALP-hface/ai4i-failure-prediction-model](https://huggingface.co/ALP-hface/ai4i-failure-prediction-model) on Hugging Face.
 
