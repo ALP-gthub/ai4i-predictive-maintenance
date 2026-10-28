@@ -61,3 +61,7 @@ footer{width:min(1150px,92vw);margin:0 auto 30px;color:var(--muted);font-size:11
 .stats em{font-style:normal;color:var(--accent)}
 .khint{display:block;color:var(--muted);font-size:11px;margin:-8px 0 4px}
 @media(max-width:640px){.stats{grid-template-columns:1fr}.headright .pill{display:none}}
+.unitrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 4px;font-weight:700;font-size:13px}
+.seg{display:flex;border:1px solid #cbd3dc;border-radius:999px;overflow:hidden}
+.seg button{background:#fff;color:var(--text);border:0;padding:6px 14px;font:700 12px Arial,Helvetica,sans-serif;cursor:pointer;min-height:36px;min-width:48px}
+.seg button[aria-pressed=true]{background:var(--accent);color:#fff}

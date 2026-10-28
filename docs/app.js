@@ -1,6 +1,6 @@
 // Page logic for the AI4I 2020 demo. The model itself is in model.js / model.json.
-// The page is bilingual (English / Turkish). Temperatures are entered in °C and
-// converted to kelvin, the unit the model and the dataset use.
+// The page is bilingual (English / Turkish). Temperatures can be entered in °C
+// or K; the model and the dataset use kelvin, so °C values are converted.
 (function () {
   "use strict";
 
@@ -36,7 +36,9 @@
       l_speed: "Rotational speed",
       l_torque: "Torque",
       l_wear: "Tool wear",
-      k_hint: (k) => `= ${k} K, the unit the model uses`,
+      unit_label: "Temperature unit",
+      hint_k: (k) => `= ${k} K, the unit the model uses`,
+      hint_c: (c) => `= ${c} °C`,
       predict: "PREDICT",
       result_kicker: "RESULT",
       result_h2: "Model estimate",
@@ -104,7 +106,9 @@
       l_speed: "Devir hızı",
       l_torque: "Tork",
       l_wear: "Takım aşınması (kullanım süresi)",
-      k_hint: (k) => `= ${k} K, modelin kullandığı birim`,
+      unit_label: "Sıcaklık birimi",
+      hint_k: (k) => `= ${k} K, modelin kullandığı birim`,
+      hint_c: (c) => `= ${c} °C`,
       predict: "TAHMİN ET",
       result_kicker: "SONUÇ",
       result_h2: "Model tahmini",
@@ -169,11 +173,12 @@
   let metrics = null;
   let check = null;
   let lastInput = null;
+  let unit = "C"; // temperature unit shown in the form: "C" or "K"
 
   function setInputs(p) {
     $("type").value = p.type;
-    $("airC").value = toC(p.air);
-    $("processC").value = toC(p.process);
+    $("airT").value = unit === "C" ? toC(p.air) : p.air;
+    $("processT").value = unit === "C" ? toC(p.process) : p.process;
     ["speed", "torque", "wear"].forEach((f) => ($(f).value = p[f]));
     updateKHints();
   }
@@ -185,23 +190,46 @@
   }
 
   function readInputs() {
-    const vals = { airC: num("airC"), processC: num("processC"), speed: num("speed"), torque: num("torque"), wear: num("wear") };
+    const vals = { air: num("airT"), process: num("processT"), speed: num("speed"), torque: num("torque"), wear: num("wear") };
     if (Object.values(vals).some((v) => v === null)) return null;
+    const kelvin = (v) => (unit === "C" ? toK(v) : v);
     return {
       type: $("type").value,
-      air: toK(vals.airC),
-      process: toK(vals.processC),
+      air: kelvin(vals.air),
+      process: kelvin(vals.process),
       speed: vals.speed,
       torque: vals.torque,
       wear: vals.wear,
     };
   }
 
+  // Under each temperature field: the same value in the other unit.
   function updateKHints() {
-    [["airC", "airK"], ["processC", "processK"]].forEach(([inp, out]) => {
-      const c = num(inp);
-      $(out).textContent = c === null ? "" : t("k_hint")(fmt(toK(c), 2));
+    [["airT", "airHint"], ["processT", "processHint"]].forEach(([inp, out]) => {
+      const v = num(inp);
+      if (v === null) $(out).textContent = "";
+      else if (unit === "C") $(out).textContent = t("hint_k")(fmt(toK(v), 2));
+      else $(out).textContent = t("hint_c")(fmt(toC(v), 2));
     });
+  }
+
+  // Switching the unit converts the values already in the fields.
+  function setUnit(next, convert) {
+    if (convert && next !== unit) {
+      ["airT", "processT"].forEach((id) => {
+        const v = num(id);
+        if (v !== null) $(id).value = next === "C" ? toC(v) : toK(v);
+      });
+    }
+    unit = next;
+    document.querySelectorAll("[data-unit]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.unit === unit)));
+    document.querySelectorAll(".tunit").forEach((el) => (el.textContent = unit === "C" ? "°C" : "K"));
+    try {
+      localStorage.setItem("ai4i-unit", unit);
+    } catch (e) {
+      /* storage unavailable: the choice is simply not remembered */
+    }
+    updateKHints();
   }
 
   const status = (on) =>
@@ -333,7 +361,20 @@
     document.querySelectorAll("[data-lang]").forEach((b) =>
       b.addEventListener("click", () => applyLanguage(b.dataset.lang))
     );
-    ["airC", "processC"].forEach((id) => $(id).addEventListener("input", updateKHints));
+    ["airT", "processT"].forEach((id) => $(id).addEventListener("input", updateKHints));
+    let savedUnit = "C";
+    try {
+      if (localStorage.getItem("ai4i-unit") === "K") savedUnit = "K";
+    } catch (e) {
+      /* ignore */
+    }
+    setUnit(savedUnit, false);
+    document.querySelectorAll("[data-unit]").forEach((b) =>
+      b.addEventListener("click", () => {
+        setUnit(b.dataset.unit, true);
+        if (model) predict();
+      })
+    );
 
     [model, metrics, check] = await Promise.all(
       ["model.json", "metrics.json", "web_export_check.json"].map((u) => fetch(u).then((r) => r.json()))

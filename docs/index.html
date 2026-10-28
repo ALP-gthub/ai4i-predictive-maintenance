@@ -55,10 +55,17 @@
       <label><span data-i18n="l_type">Product quality type</span>
         <select id="type"><option value="L" data-i18n="t_L">L (low)</option><option value="M" data-i18n="t_M">M (medium)</option><option value="H" data-i18n="t_H">H (high)</option></select>
       </label>
-      <label><span data-i18n="l_air">Air temperature</span><input id="airC" type="number" step="0.01" required><i>°C</i></label>
-      <small class="khint" id="airK"></small>
-      <label><span data-i18n="l_process">Process temperature</span><input id="processC" type="number" step="0.01" required><i>°C</i></label>
-      <small class="khint" id="processK"></small>
+      <div class="unitrow">
+        <span data-i18n="unit_label">Temperature unit</span>
+        <div class="seg" role="group" aria-label="Temperature unit">
+          <button type="button" data-unit="C" aria-pressed="true">°C</button>
+          <button type="button" data-unit="K" aria-pressed="false">K</button>
+        </div>
+      </div>
+      <label><span data-i18n="l_air">Air temperature</span><input id="airT" type="number" step="0.01" required><i class="tunit">°C</i></label>
+      <small class="khint" id="airHint"></small>
+      <label><span data-i18n="l_process">Process temperature</span><input id="processT" type="number" step="0.01" required><i class="tunit">°C</i></label>
+      <small class="khint" id="processHint"></small>
       <label><span data-i18n="l_speed">Rotational speed</span><input id="speed" type="number" step="1" min="0" required><i>rpm</i></label>
       <label><span data-i18n="l_torque">Torque</span><input id="torque" type="number" step="0.1" min="0" required><i>Nm</i></label>
       <label><span data-i18n="l_wear">Tool wear</span><input id="wear" type="number" step="1" min="0" required><i>min</i></label>
