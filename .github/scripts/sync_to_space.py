@@ -66,6 +66,10 @@ def main():
         )
     except Exception as exc:
         note("error", "Upload failed", f"{type(exc).__name__}: {exc}")
+        response = getattr(exc, "response", None)
+        if response is not None:
+            body = " ".join(response.text.split())[:900]
+            note("error", "Hugging Face response", body or "(empty body)")
         return 1
 
     note("notice", "Upload complete", f"Space updated: {commit.commit_url}")
