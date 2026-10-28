@@ -6,19 +6,56 @@
 
   const $ = (id) => document.getElementById(id);
 
+  // Turkish case endings for a number, chosen from its last spoken word:
+  // ablative ("21'den") and dative ("12'ye").
+  const TR_WORDS = {
+    units: ["", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz"],
+    tens: ["", "on", "yirmi", "otuz", "kırk", "elli", "altmış", "yetmiş", "seksen", "doksan"],
+  };
+  function trLastWord(n) {
+    n = Math.abs(Math.trunc(n));
+    if (n === 0) return "sıfır";
+    if (n % 10) return TR_WORDS.units[n % 10];
+    if (n % 100) return TR_WORDS.tens[(n % 100) / 10];
+    if (n % 1000) return "yüz";
+    return "bin";
+  }
+  function trVowel(word) {
+    const v = word.match(/[aeıioöuü](?=[^aeıioöuü]*$)/);
+    return v ? v[0] : "e";
+  }
+  const trBack = (v) => "aıou".includes(v);
+  const HARD = "fstkçşhp";
+  function trAbl(n) {
+    const w = trLastWord(n);
+    const d = HARD.includes(w[w.length - 1]) ? "t" : "d";
+    return "'" + d + (trBack(trVowel(w)) ? "an" : "en");
+  }
+  function trDat(n) {
+    const w = trLastWord(n);
+    const vowelEnd = "aeıioöuü".includes(w[w.length - 1]);
+    return "'" + (vowelEnd ? "y" : "") + (trBack(trVowel(w)) ? "a" : "e");
+  }
+
   // ---------- Text ----------
   const TEXT = {
     en: {
-      doc_title: "AI4I 2020 Failure Prediction",
-      site_title: "AI4I 2020 Failure Prediction",
-      site_sub: "Predictive maintenance • Gradient boosting • Engineering features",
+      doc_title: "Failure Prediction: field knowledge meets machine learning",
+      site_title: "Failure Prediction",
+      site_sub: "Field knowledge meets machine learning",
       source: "Source on GitHub",
       kicker: "MACHINE LEARNING THROUGH AN ENGINEER'S EYES",
-      hero_h1: "Same data. Same algorithm. The difference was the question.",
+      hero_title: (raw, eng) => `Three values a maintenance engineer checks first cut missed failures from ${raw} to ${eng}.`,
+      hero_lede: "Same data, same algorithm. The difference was the question.",
+      cmp_metric: "Result",
+      cmp_raw: "Raw sensor data only",
+      cmp_eng: "+ 3 engineering values",
+      cmp_change: "Change",
+      fewer: (p) => `${p} fewer`,
+      phys_line: (caught, total) => `Of the ${total} failures with a physical cause, ${caught} were caught.`,
       hero_p: "A failure prediction model was trained twice on the same data. The second time, it also received three values an experienced maintenance engineer checks first: temperature difference, mechanical power and tool load. Nothing else changed.",
       stat_missed: "Missed failures",
       stat_false: "False alarms",
-      stat_phys: "Failures with a physical cause, caught",
       stats_note: (s) => `Held-out test set of ${s.rows} records the model never saw, with ${s.failures} real failures.`,
       try_h2: "Try it yourself",
       try_p: "Enter the conditions of a milling process. The model estimates the failure probability, and the documented physical failure conditions are checked next to it. Everything runs in your browser.",
@@ -98,16 +135,22 @@
       err_load: "The model could not be loaded: ",
     },
     tr: {
-      doc_title: "AI4I 2020 Arıza Tahmini",
-      site_title: "AI4I 2020 Arıza Tahmini",
-      site_sub: "Kestirimci bakım • Gradient boosting • Mühendislik özellikleri",
+      doc_title: "Arıza Tahmini: saha bilgisi ile makine öğrenmesi",
+      site_title: "Arıza Tahmini",
+      site_sub: "Saha bilgisi ile makine öğrenmesi",
       source: "GitHub'da kaynak kod",
       kicker: "MÜHENDİS GÖZÜYLE MAKİNE ÖĞRENMESİ",
-      hero_h1: "Aynı veri. Aynı algoritma. Farkı yaratan soruydu.",
+      hero_title: (raw, eng) => `Bir bakım mühendisinin baktığı üç değer, kaçan arızaları ${raw}${trAbl(raw)} ${eng}${trDat(eng)} indirdi.`,
+      hero_lede: "Aynı veri, aynı algoritma. Farkı yaratan soruydu.",
+      cmp_metric: "Sonuç",
+      cmp_raw: "Yalnızca ham sensör verisi",
+      cmp_eng: "+ 3 mühendislik değeri",
+      cmp_change: "Değişim",
+      fewer: (p) => `${p} daha az`,
+      phys_line: (caught, total) => `Fiziksel nedeni olan ${total} arızadan ${caught} tanesi yakalandı.`,
       hero_p: "Bir arıza tahmin modeli aynı veriyle iki kez eğitildi. İkincisinde, deneyimli bir bakım mühendisinin ilk baktığı üç değer de modele verildi: sıcaklık farkı, mekanik güç ve takım yükü. Başka hiçbir şey değişmedi.",
       stat_missed: "Kaçırılan arıza",
       stat_false: "Yanlış alarm",
-      stat_phys: "Fiziksel nedenli arızalardan yakalanan",
       stats_note: (s) => `Modelin hiç görmediği ${s.rows} kayıtlık test seti, ${s.failures} gerçek arıza.`,
       try_h2: "Kendiniz deneyin",
       try_p: "Bir freze prosesinin koşullarını girin. Model arıza olasılığını tahmin eder; yanında veri setinde belgelenen fiziksel arıza koşulları kontrol edilir. Tüm hesaplama tarayıcınızda yapılır.",
@@ -339,12 +382,15 @@
     const phys = physical(metrics.test_caught_by_failure_mode.boosting_engineered);
     const sizes = { rows: fmt(s.test_rows, 0), failures: s.test_failures, seed: s.seed };
 
+    $("heroTitle").textContent = t("hero_title")(raw.fn, eng.fn);
     $("missedRaw").textContent = raw.fn;
     $("missedEng").textContent = eng.fn;
     $("fpRaw").textContent = raw.fp;
     $("fpEng").textContent = eng.fp;
-    $("physCaught").textContent = phys.caught;
-    $("physTotal").textContent = phys.total;
+    const drop = (a, b) => (lang === "tr" ? "%" + fmt(((a - b) / a) * 100, 0) : fmt(((a - b) / a) * 100, 0) + " %");
+    $("missedDelta").textContent = t("fewer")(drop(raw.fn, eng.fn));
+    $("fpDelta").textContent = t("fewer")(drop(raw.fp, eng.fp));
+    $("physLine").textContent = t("phys_line")(phys.caught, phys.total);
     $("statsNote").textContent = t("stats_note")(sizes);
     $("split").textContent = t("split")(sizes);
 
