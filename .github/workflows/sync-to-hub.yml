@@ -1,0 +1,20 @@
+# Mirrors this repository to a Hugging Face Space on every push to main.
+# Setup (once, in GitHub repository settings):
+#   Secrets  -> HF_TOKEN      a Hugging Face access token with write permission
+#   Variables -> HF_SPACE_ID  the Space id, in the form <hf-username>/<space-name>
+name: Sync to Hugging Face Space
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: huggingface/hub-sync@v0.1.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: ${{ vars.HF_SPACE_ID }}
+          hf_token: ${{ secrets.HF_TOKEN }}
