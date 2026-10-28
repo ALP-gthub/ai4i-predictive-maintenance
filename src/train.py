@@ -4,8 +4,13 @@ Usage:
     python -m src.train --data data/ai4i2020.csv
 
 Outputs:
-    model/model.joblib       the deployed model (gradient boosting, engineered features)
-    results/metrics.json     every number reported in the README
+    model/model.joblib            the deployed model (gradient boosting, engineered features)
+    results/metrics.json          every number reported in the README
+    results/test_predictions.json test-set labels and the probabilities of both
+                                  gradient boosting models, used by the cost section
+    results/train_oof_predictions.json  training-set labels and out-of-fold
+                                  probabilities (five-fold), used to choose the
+                                  cost-optimal threshold without touching the test set
 """
 
 import argparse
@@ -27,7 +32,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
-from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
+from sklearn.model_selection import StratifiedKFold, cross_val_predict, cross_validate, train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
@@ -152,6 +157,8 @@ def main():
 
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
     models = make_models()
+    test_probabilities = {}
+    train_oof_probabilities = {}
     for name, model in models.items():
         cvr = cross_validate(
             model, train_df, y_train, cv=cv, scoring=["f1", "average_precision"]
@@ -162,10 +169,15 @@ def main():
             "pr_auc_mean": float(cvr["test_average_precision"].mean()),
             "pr_auc_std": float(cvr["test_average_precision"].std()),
         }
+        if name.startswith("boosting"):
+            oof = cross_val_predict(model, train_df, y_train, cv=cv, method="predict_proba")[:, 1]
+            train_oof_probabilities[name] = [float(v) for v in oof]
         model.fit(train_df, y_train)
         y_pred = model.predict(test_df)
         y_score = model.predict_proba(test_df)[:, 1]
         results["test"][name] = scores(y_test, y_pred, y_score)
+        if name.startswith("boosting"):
+            test_probabilities[name] = [float(v) for v in y_score]
         results["test_caught_by_failure_mode"][name] = caught_by_group(test_df, y_test, y_pred)
 
     # Reference: the documented physical rules, no learning involved.
@@ -176,6 +188,12 @@ def main():
     )
 
     joblib.dump(models["boosting_engineered"], out_dir / "model" / "model.joblib")
+    (out_dir / "results" / "test_predictions.json").write_text(
+        json.dumps({"label": [int(v) for v in y_test], **test_probabilities})
+    )
+    (out_dir / "results" / "train_oof_predictions.json").write_text(
+        json.dumps({"label": [int(v) for v in y_train], **train_oof_probabilities})
+    )
     (out_dir / "results" / "metrics.json").write_text(
         json.dumps(results, indent=2, ensure_ascii=False)
     )

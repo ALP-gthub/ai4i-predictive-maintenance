@@ -75,6 +75,25 @@
       webcheck: (c) => `Browser check: this page was compared with the Python model on ${c.rows} dataset rows and ${c.random} random inputs. Decision differences: ${c.mismatch}. Largest probability difference: ${c.diff}.`,
       scope: "<b>Scope:</b> the AI4I 2020 dataset is synthetic and its failures follow fixed rules. The model and the thresholds shown here belong to that dataset, not to any real machine. This page is for learning and demonstration.",
       footer: 'Data: AI4I 2020 Predictive Maintenance Dataset, UCI Machine Learning Repository, <a href="https://doi.org/10.24432/C5HS5C">doi.org/10.24432/C5HS5C</a>, CC BY 4.0. Study and page: ALP ATA. Code: <a href="https://github.com/ALP-gthub/ai4i-predictive-maintenance">github.com/ALP-gthub/ai4i-predictive-maintenance</a>',
+      cost_h2: "Decision by cost",
+      cost_p: "A probability alone does not tell you what to do. Enter what an unplanned failure and an inspection cost you. The page finds the alarm threshold with the lowest total cost and shows what it would have meant on the test records.",
+      c_fail: "Cost of one unplanned failure",
+      c_inspect: "Cost of one inspection",
+      c_hint: "Example ratio. Enter your own values; any currency works as long as both use the same one.",
+      o_none: "React after failure, no model",
+      o_half: "Model, default 50 % threshold",
+      o_best: (t) => `Model, cost-based threshold (${t})`,
+      o_best_none: "Cost-based choice: no alarms",
+      d_counts: (alarms, missed, fa) => `${alarms} alarms, ${missed} missed failures, ${fa} false alarms`,
+      d_none: (missed) => `${missed} failures, all unplanned`,
+      saving: (amount, pct) => `Cost-based threshold compared with reacting after failure: ${amount} lower total cost (${pct}).`,
+      no_saving: "With these costs, inspections are not worth it: reacting after failure is the cheapest option.",
+      raw_line: (cost, cmp) => `Same costs, model without engineering features at its own cost-based threshold: ${cost} (${cmp}).`,
+      cmp_more: (d) => `${d} more`,
+      cmp_less: (d) => `${d} less`,
+      cmp_same: "the same",
+      method: (r) => `Assumptions: every alarm leads to one inspection; a failure caught by an alarm is prevented by that inspection; every missed failure costs one unplanned failure. The threshold is chosen on the training data only (five-fold out-of-fold predictions). Costs are measured on ${r.rows} test records with ${r.failures} real failures that played no part in the choice. The calculation was checked against an independent Python implementation in ${r.cases} cases with ${r.diff} differences.`,
+      err_cost: "Please enter two non-negative numbers.",
       err_fill: "Please fill in every field with a number.",
       err_load: "The model could not be loaded: ",
     },
@@ -145,6 +164,25 @@
       webcheck: (c) => `Tarayıcı kontrolü: Bu sayfa, Python modeliyle ${c.rows} veri satırında ve ${c.random} rastgele girdide karşılaştırıldı. Karar farkı: ${c.mismatch}. En büyük olasılık farkı: ${c.diff}.`,
       scope: "<b>Kapsam:</b> AI4I 2020 veri seti sentetiktir ve arızaları sabit kurallarla üretilmiştir. Burada gösterilen model ve eşikler bu veri setine aittir, gerçek bir makineye ait değildir. Bu sayfa öğrenme ve tanıtım amaçlıdır.",
       footer: 'Veri: AI4I 2020 Predictive Maintenance Dataset, UCI Machine Learning Repository, <a href="https://doi.org/10.24432/C5HS5C">doi.org/10.24432/C5HS5C</a>, CC BY 4.0. Çalışma ve sayfa: ALP ATA. Kod: <a href="https://github.com/ALP-gthub/ai4i-predictive-maintenance">github.com/ALP-gthub/ai4i-predictive-maintenance</a>',
+      cost_h2: "Maliyet açısından karar",
+      cost_p: "Olasılık tek başına ne yapılacağını söylemez. Plansız bir arızanın ve bir kontrolün size maliyetini girin. Sayfa, toplam maliyeti en düşük alarm eşiğini bulur ve bunun test kayıtlarında ne anlama geleceğini gösterir.",
+      c_fail: "Bir plansız arızanın maliyeti",
+      c_inspect: "Bir kontrolün maliyeti",
+      c_hint: "Örnek oran. Kendi değerlerinizi girin; iki değer aynı para biriminde olduğu sürece birim önemli değil.",
+      o_none: "Arızadan sonra müdahale, model yok",
+      o_half: "Model, varsayılan %50 eşik",
+      o_best: (t) => `Model, maliyete dayalı eşik (${t})`,
+      o_best_none: "Maliyete dayalı seçim: alarm yok",
+      d_counts: (alarms, missed, fa) => `${alarms} alarm, ${missed} kaçan arıza, ${fa} yanlış alarm`,
+      d_none: (missed) => `${missed} arıza, hepsi plansız`,
+      saving: (amount, pct) => `Maliyete dayalı eşik, arızadan sonra müdahaleye göre toplam maliyeti ${amount} düşürüyor (${pct}).`,
+      no_saving: "Bu maliyetlerle kontrol yapmak kârlı değil: En ucuz seçenek arızadan sonra müdahale.",
+      raw_line: (cost, cmp) => `Aynı maliyetlerle, mühendislik özellikleri olmayan model kendi maliyete dayalı eşiğinde: ${cost} (${cmp}).`,
+      cmp_more: (d) => `${d} daha fazla`,
+      cmp_less: (d) => `${d} daha az`,
+      cmp_same: "aynı",
+      method: (r) => `Varsayımlar: Her alarm bir kontrole yol açar; alarmın yakaladığı arıza o kontrolle önlenir; kaçan her arıza bir plansız arıza maliyeti doğurur. Eşik yalnızca eğitim verisinden seçilir (beş katlı çapraz doğrulama tahminleri). Maliyetler, seçimde hiç kullanılmayan ${r.rows} test kaydında (${r.failures} gerçek arıza) ölçülür. Hesap, bağımsız bir Python hesabıyla ${r.cases} senaryoda karşılaştırıldı; fark sayısı: ${r.diff}.`,
+      err_cost: "Lütfen negatif olmayan iki sayı girin.",
       err_fill: "Lütfen her alana bir sayı girin.",
       err_load: "Model yüklenemedi: ",
     },
@@ -172,6 +210,8 @@
   let model = null;
   let metrics = null;
   let check = null;
+  let trainPreds = null;
+  let testPreds = null;
   let lastInput = null;
   let unit = "C"; // temperature unit shown in the form: "C" or "K"
 
@@ -323,6 +363,67 @@
     });
   }
 
+  // ---------- Decision by cost ----------
+  const money = (x) => fmt(x, Number.isInteger(x) ? 0 : 2);
+  const share = (x) => (lang === "tr" ? "%" + fmt(x * 100, 0) : fmt(x * 100, 0) + " %");
+
+  function decide(name, failCost, inspectCost) {
+    return AI4I.costDecision(
+      { label: trainPreds.label, probs: trainPreds[name] },
+      { label: testPreds.label, probs: testPreds[name] },
+      failCost,
+      inspectCost
+    );
+  }
+
+  function renderCost() {
+    if (!trainPreds || !testPreds) return;
+    const A = num("costFail");
+    const B = num("costInspect");
+    const err = $("costError");
+    if (A === null || B === null || A < 0 || B < 0) {
+      err.textContent = t("err_cost");
+      err.hidden = false;
+      return;
+    }
+    err.hidden = true;
+
+    const eng = decide("boosting_engineered", A, B);
+    const raw = decide("boosting_raw", A, B);
+
+    $("cNone").textContent = money(eng.noMonitoring.cost);
+    $("cNoneD").textContent = t("d_none")(eng.noMonitoring.fn);
+    $("cHalf").textContent = money(eng.atHalf.cost);
+    $("cHalfD").textContent = t("d_counts")(eng.atHalf.alarms, eng.atHalf.fn, eng.atHalf.fp);
+
+    const noAlarm = eng.threshold === Infinity;
+    $("cBestLabel").textContent = noAlarm ? t("o_best_none") : t("o_best")(pctThreshold(eng.threshold));
+    $("cBest").textContent = money(eng.chosen.cost);
+    $("cBestD").textContent = t("d_counts")(eng.chosen.alarms, eng.chosen.fn, eng.chosen.fp);
+
+    const saved = eng.noMonitoring.cost - eng.chosen.cost;
+    $("cSaving").textContent =
+      saved > 0 ? t("saving")(money(saved), share(saved / eng.noMonitoring.cost)) : t("no_saving");
+
+    const diff = raw.chosen.cost - eng.chosen.cost;
+    const cmp = diff > 0 ? t("cmp_more")(money(diff)) : diff < 0 ? t("cmp_less")(money(-diff)) : t("cmp_same");
+    $("cRaw").textContent = t("raw_line")(money(raw.chosen.cost), cmp);
+
+    $("cMethod").textContent = t("method")({
+      rows: fmt(testPreds.label.length, 0),
+      failures: eng.noMonitoring.fn,
+      cases: check.cost_cases_compared,
+      diff: check.cost_differences,
+    });
+  }
+
+  // Thresholds can be very small, so show enough digits to be meaningful.
+  function pctThreshold(x) {
+    const v = x * 100;
+    const d = v >= 10 ? 1 : v >= 1 ? 2 : 3;
+    return lang === "tr" ? "%" + fmt(v, d) : fmt(v, d) + " %";
+  }
+
   function applyLanguage(next) {
     lang = next;
     document.documentElement.lang = lang;
@@ -344,6 +445,7 @@
     updateKHints();
     if (metrics) renderStudy();
     if (model) render(lastInput);
+    renderCost();
   }
 
   function initialLanguage() {
@@ -376,10 +478,14 @@
       })
     );
 
-    [model, metrics, check] = await Promise.all(
-      ["model.json", "metrics.json", "web_export_check.json"].map((u) => fetch(u).then((r) => r.json()))
+    [model, metrics, check, trainPreds, testPreds] = await Promise.all(
+      ["model.json", "metrics.json", "web_export_check.json", "train_oof_predictions.json", "test_predictions.json"].map((u) =>
+        fetch(u).then((r) => r.json())
+      )
     );
     renderStudy();
+    ["costFail", "costInspect"].forEach((id) => $(id).addEventListener("input", renderCost));
+    renderCost();
     document.querySelectorAll("[data-preset]").forEach((b) =>
       b.addEventListener("click", () => {
         setInputs(PRESETS[b.dataset.preset]);

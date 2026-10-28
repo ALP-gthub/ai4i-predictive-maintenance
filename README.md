@@ -114,6 +114,15 @@ Actual test failures caught, by failure mode:
 * **Tool wear failures are not predictable here.** The dataset assigns them at a random wear time, so no model or rule can catch them reliably. In a real plant this is solved with a wear-based replacement schedule, not with a classifier.
 * **False alarms sit near the limits.** The model's false alarms are cases close to a documented threshold, for example tool load just under 11,000 min·Nm or power just above 3,500 W.
 
+## Decision by cost
+
+The demo page turns the model's probability into a decision. The user enters two costs: one unplanned failure and one inspection. The page then finds the alarm threshold with the lowest total cost and shows its effect on the test records, next to two references: reacting after failure without a model, and the default 50 % threshold.
+
+* Assumptions: every alarm leads to one inspection; a failure caught by an alarm is prevented by that inspection; every missed failure costs one unplanned failure.
+* The threshold is chosen on the training data only, from five-fold out-of-fold predictions (`results/train_oof_predictions.json`). Costs are measured on the held-out test set (`results/test_predictions.json`), which plays no part in the choice.
+* The page's calculation (`costDecision` in `docs/model.js`) is checked against an independent Python implementation for 11 cost pairs and both gradient boosting models; the result is in `results/web_export_check.json`.
+* The cost-based threshold is not always in favour of the engineered features. With very high failure costs, the model on raw measurements can reach a lower total cost at its own threshold. The page shows whichever result the numbers give.
+
 ## Limitations
 
 * The dataset is synthetic and its failures follow fixed rules. High scores here do not mean the same approach will perform equally well on real machine data, where limits are not sharp and sensors are noisy.
@@ -127,7 +136,7 @@ pip install -r requirements.txt
 python -m src.train --data data/ai4i2020.csv   # trains, writes model/ and results/
 python -m src.report                            # writes the results tables into this README
 python -m src.plot                              # draws results/caught_by_mode.png
-python -m src.export_web                        # exports the model to docs/ and checks it (needs Node.js)
+python -m src.export_web                        # exports the model and predictions to docs/ and checks them (needs Node.js)
 python app.py                                   # optional: Gradio version of the demo, runs locally
 ```
 
@@ -144,11 +153,14 @@ src/report.py           writes results tables into README.md and the model card
 src/plot.py             draws the results chart
 src/export_web.py       exports the model for the browser and checks it against Python
 src/check_web_model.js  runs the browser predictor in Node.js for that check
+src/check_cost.js       runs the browser cost calculation in Node.js for the cost check
 data/ai4i2020.csv       official dataset file (CC BY 4.0)
 model/model.joblib      trained model used by the demo
 results/metrics.json    every reported number
 results/caught_by_mode.png  results chart
-results/web_export_check.json  browser vs Python comparison
+results/web_export_check.json  browser vs Python comparison, prediction and cost
+results/test_predictions.json  test-set labels and probabilities, for the cost section
+results/train_oof_predictions.json  training out-of-fold probabilities, to choose the threshold
 .github/                workflow and script that publish to Hugging Face
 ```
 

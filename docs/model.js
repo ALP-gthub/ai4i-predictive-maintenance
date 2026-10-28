@@ -84,7 +84,69 @@
     return Math.round((kelvin - 273.15) * 100) / 100;
   }
 
-  const api = { engineered, featureVector, predictProbability, documentedChecks, toK, toC };
+  // Cost of acting on the model's alarms, over the held-out test set.
+  // Assumptions, stated on the page:
+  //   every alarm triggers one inspection (inspectCost),
+  //   a failure caught by an alarm is prevented by that inspection,
+  //   every missed failure costs one unplanned failure (failCost).
+  // An alarm is raised when probability >= threshold. The sweep tries every
+  // distinct probability as the threshold and keeps the cheapest; on a tie it
+  // keeps the higher threshold (fewer alarms); "no alarm at all" is the
+  // starting point. src/export_web.py checks costDecision against an
+  // independent Python implementation.
+  function outcome(labels, probs, threshold, failCost, inspectCost) {
+    let tp = 0;
+    let fp = 0;
+    let fn = 0;
+    for (let i = 0; i < labels.length; i++) {
+      const alarm = probs[i] >= threshold;
+      if (labels[i] === 1 && alarm) tp++;
+      else if (labels[i] === 1) fn++;
+      else if (alarm) fp++;
+    }
+    return { threshold, tp, fp, fn, alarms: tp + fp, cost: fn * failCost + (tp + fp) * inspectCost };
+  }
+
+  function costSweep(labels, probs, failCost, inspectCost) {
+    const order = probs.map((p, i) => i).sort((a, b) => probs[b] - probs[a]);
+    const failures = labels.reduce((s, v) => s + v, 0);
+    let tp = 0;
+    let fp = 0;
+    let best = { threshold: Infinity, tp: 0, fp: 0, fn: failures, alarms: 0, cost: failures * failCost };
+    let k = 0;
+    while (k < order.length) {
+      const t = probs[order[k]];
+      while (k < order.length && probs[order[k]] === t) {
+        if (labels[order[k]] === 1) tp++;
+        else fp++;
+        k++;
+      }
+      const fn = failures - tp;
+      const cost = fn * failCost + (tp + fp) * inspectCost;
+      if (cost < best.cost) best = { threshold: t, tp, fp, fn, alarms: tp + fp, cost };
+    }
+    return {
+      best: best,
+      atHalf: outcome(labels, probs, 0.5, failCost, inspectCost),
+      noMonitoring: { fn: failures, cost: failures * failCost },
+    };
+  }
+
+  // The threshold is chosen on out-of-fold predictions for the training set
+  // (train), then applied to the held-out test set (test), which played no
+  // part in the choice. Each of train and test is { label: [...], probs: [...] }.
+  function costDecision(train, test, failCost, inspectCost) {
+    const chosen = costSweep(train.label, train.probs, failCost, inspectCost).best.threshold;
+    const failures = test.label.reduce((s, v) => s + v, 0);
+    return {
+      threshold: chosen,
+      chosen: outcome(test.label, test.probs, chosen, failCost, inspectCost),
+      atHalf: outcome(test.label, test.probs, 0.5, failCost, inspectCost),
+      noMonitoring: { fn: failures, alarms: 0, cost: failures * failCost },
+    };
+  }
+
+  const api = { engineered, featureVector, predictProbability, documentedChecks, toK, toC, costSweep, costDecision };
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   } else {

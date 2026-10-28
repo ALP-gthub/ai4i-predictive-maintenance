@@ -6,7 +6,12 @@
    writes the result to results/web_export_check.json. Also checks the page's
    °C entry: every temperature converted to °C and back must be unchanged and
    give the same probability. Stops on any mismatch.
-3. Copies results/metrics.json, web_export_check.json and caught_by_mode.png
+3. Copies the training out-of-fold and test-set predictions to docs/ and
+   checks the page's cost calculation (costDecision in docs/model.js) against
+   an independent Python implementation, for a range of cost pairs: threshold
+   chosen on training data, cost measured on the test set. Stops on any
+   difference.
+4. Copies results/metrics.json, web_export_check.json and caught_by_mode.png
    to docs/, where the page reads them.
 
 Usage:
@@ -107,9 +112,80 @@ def main():
     if report["celsius_roundtrip_mismatches"] or report["celsius_path_probability_differences"]:
         raise SystemExit("The page's °C conversion changes model inputs.")
 
+    check_cost()
+
     # The page reads its numbers from these copies, never from hand-typed values.
     for name in ["metrics.json", "web_export_check.json", "caught_by_mode.png"]:
         shutil.copyfile(ROOT / "results" / name, ROOT / "docs" / name)
+
+
+# Cost pairs (unplanned failure, inspection) for the check, from cheap to
+# very expensive failures, plus non-integer values.
+COST_CASES = [[1, 1], [2, 1], [5, 1], [10, 1], [20, 1], [50, 1], [100, 1], [1000, 1], [1, 3], [7.5, 2], [250, 40]]
+
+
+def python_threshold(labels, probs, fail_cost, inspect_cost):
+    """Brute force reference: the cheapest threshold over every distinct probability.
+
+    None means "no alarm at all", which is also the starting point. On a tie
+    the higher threshold (fewer alarms) is kept.
+    """
+    labels = np.asarray(labels)
+    probs = np.asarray(probs)
+    failures = int(labels.sum())
+    best_t, best_cost = None, failures * fail_cost
+    for t in sorted(set(probs.tolist()), reverse=True):
+        alarm = probs >= t
+        tp = int(((labels == 1) & alarm).sum())
+        fp = int(((labels == 0) & alarm).sum())
+        cost = (failures - tp) * fail_cost + (tp + fp) * inspect_cost
+        if cost < best_cost:
+            best_t, best_cost = t, cost
+    return best_t
+
+
+def python_outcome(labels, probs, threshold, fail_cost, inspect_cost):
+    labels = np.asarray(labels)
+    probs = np.asarray(probs)
+    alarm = np.zeros(len(probs), bool) if threshold is None else probs >= threshold
+    tp = int(((labels == 1) & alarm).sum())
+    fp = int(((labels == 0) & alarm).sum())
+    fn = int(((labels == 1) & ~alarm).sum())
+    return {"tp": tp, "fp": fp, "fn": fn, "cost": fn * fail_cost + (tp + fp) * inspect_cost}
+
+
+def check_cost():
+    """The threshold is chosen on training out-of-fold predictions and applied to the test set."""
+    train = json.loads((ROOT / "results" / "train_oof_predictions.json").read_text())
+    test = json.loads((ROOT / "results" / "test_predictions.json").read_text())
+    for name in ["train_oof_predictions.json", "test_predictions.json"]:
+        shutil.copyfile(ROOT / "results" / name, ROOT / "docs" / name)
+    cases_file = ROOT / "results" / "_cost_cases.json"
+    cases_file.write_text(json.dumps(COST_CASES))
+    out = subprocess.run(
+        ["node", str(ROOT / "src" / "check_cost.js"), str(ROOT / "docs"), str(cases_file)],
+        capture_output=True, text=True, check=True,
+    )
+    cases_file.unlink()
+    differences = 0
+    for r in json.loads(out.stdout):
+        name, a, b = r["name"], r["failCost"], r["inspectCost"]
+        t = python_threshold(train["label"], train[name], a, b)
+        ref = python_outcome(test["label"], test[name], t, a, b)
+        js = r["chosen"]
+        same = (
+            r["threshold"] == t
+            and all(js[k] == ref[k] for k in ["tp", "fp", "fn"])
+            and abs(js["cost"] - ref["cost"]) < 1e-9
+        )
+        differences += 0 if same else 1
+    report = json.loads((ROOT / "results" / "web_export_check.json").read_text())
+    report["cost_cases_compared"] = len(COST_CASES) * 2
+    report["cost_differences"] = differences
+    (ROOT / "results" / "web_export_check.json").write_text(json.dumps(report, indent=2))
+    print(json.dumps({"cost_cases_compared": report["cost_cases_compared"], "cost_differences": differences}))
+    if differences:
+        raise SystemExit("The page's cost calculation does not match the Python reference.")
 
 
 if __name__ == "__main__":

@@ -93,6 +93,25 @@
     </section>
   </section>
 
+  <section class="card cost" aria-live="polite">
+    <h2 data-i18n="cost_h2">Decision by cost</h2>
+    <p class="muted" data-i18n="cost_p">A probability alone does not tell you what to do. Enter what an unplanned failure and an inspection cost you. The page finds the alarm threshold with the lowest total cost and shows what it would have meant on the test records.</p>
+    <div class="costinputs">
+      <label><span data-i18n="c_fail">Cost of one unplanned failure</span><input id="costFail" type="number" min="0" step="any" value="10" required></label>
+      <label><span data-i18n="c_inspect">Cost of one inspection</span><input id="costInspect" type="number" min="0" step="any" value="1" required></label>
+    </div>
+    <small class="khint" data-i18n="c_hint">Example ratio. Enter your own values; any currency works as long as both use the same one.</small>
+    <p class="error" id="costError" role="alert" hidden></p>
+    <div class="costgrid">
+      <article><span data-i18n="o_none">React after failure, no model</span><b id="cNone">–</b><small id="cNoneD"></small></article>
+      <article><span data-i18n="o_half">Model, default 50 % threshold</span><b id="cHalf">–</b><small id="cHalfD"></small></article>
+      <article class="best"><span id="cBestLabel"></span><b id="cBest">–</b><small id="cBestD"></small></article>
+    </div>
+    <p class="costline" id="cSaving"></p>
+    <p class="costline" id="cRaw"></p>
+    <p class="note" id="cMethod"></p>
+  </section>
+
   <section class="card study">
     <h2 data-i18n="eval_h2">How the model was evaluated</h2>
     <p id="split" class="muted"></p>

@@ -4,5 +4,7 @@
   "max_abs_probability_difference": 2.220446049250313e-16,
   "decision_mismatches_at_0_5": 0,
   "celsius_roundtrip_mismatches": 0,
-  "celsius_path_probability_differences": 0
+  "celsius_path_probability_differences": 0,
+  "cost_cases_compared": 22,
+  "cost_differences": 0
 }
