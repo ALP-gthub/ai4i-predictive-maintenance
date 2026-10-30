@@ -1,5 +1,5 @@
 ---
-title: AI4I 2020 Failure Prediction
+title: Failure Prediction with Engineering Knowledge
 emoji: ⚙️
 colorFrom: blue
 colorTo: gray
@@ -7,12 +7,14 @@ sdk: static
 app_file: index.html
 pinned: false
 license: mit
-short_description: Machine failure prediction on the AI4I 2020 dataset
+short_description: Engineering features for failure prediction, TR/EN
 ---
 
-# AI4I 2020 Failure Prediction
+# Failure Prediction with Engineering Knowledge
 
-Browser demo of a gradient boosting model that predicts machine failure on the public AI4I 2020 predictive maintenance dataset (UCI, CC BY 4.0). It compares the model's estimate with the physical failure conditions documented for the dataset.
+Example application: milling machine, AI4I 2020 dataset (UCI, CC BY 4.0).
+
+Browser tool, in Turkish and English, built around a gradient boosting model that also uses three values a maintenance engineer checks first: temperature difference, mechanical power and tool load. Tabs: prediction with the documented physical failure conditions next to it, a cost-based alarm threshold, model evaluation, and a step-by-step explanation of how it works.
 
 The page runs entirely in the browser. Its predictions were checked against the original scikit-learn model on all 10,000 dataset rows and 20,000 random inputs.
 
