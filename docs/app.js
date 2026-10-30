@@ -40,7 +40,15 @@
   // ---------- Text ----------
   const TEXT = {
     en: {
-      doc_title: "Failure Prediction: field knowledge meets machine learning",
+      doc_title: "Failure Prediction with Engineering Knowledge",
+      tab_predict: "Prediction",
+      tab_cost: "Cost decision",
+      tab_eval: "Model evaluation",
+      in_h2: "Process inputs",
+      cost_in_h2: "Cost inputs",
+      cost_out_h2: "Result on the test records",
+      live_note: "Results update as you type.",
+      examples_h: "Examples",
       site_title: "Failure Prediction",
       site_sub: "Field knowledge meets machine learning",
       source: "Source on GitHub",
@@ -139,7 +147,15 @@
       err_load: "The model could not be loaded: ",
     },
     tr: {
-      doc_title: "Arıza Tahmini: saha bilgisi ile makine öğrenmesi",
+      doc_title: "Mühendislik Bilgisiyle Arıza Tahmini",
+      tab_predict: "Tahmin",
+      tab_cost: "Maliyet kararı",
+      tab_eval: "Model değerlendirmesi",
+      in_h2: "Proses girdileri",
+      cost_in_h2: "Maliyet girdileri",
+      cost_out_h2: "Test kayıtlarındaki sonuç",
+      live_note: "Sonuçlar siz yazdıkça güncellenir.",
+      examples_h: "Örnekler",
       site_title: "Arıza Tahmini",
       site_sub: "Saha bilgisi ile makine öğrenmesi",
       source: "GitHub'da kaynak kod",
@@ -511,7 +527,35 @@
     return (navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en";
   }
 
+  // ---------- Tabs ----------
+  function showTab(name) {
+    document.querySelectorAll("[role=tab]").forEach((b) => {
+      const on = b.dataset.tab === name;
+      b.setAttribute("aria-selected", String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+    document.querySelectorAll("[role=tabpanel]").forEach((p) => (p.hidden = p.id !== "tab-" + name));
+  }
+  function initTabs() {
+    const tabs = Array.from(document.querySelectorAll("[role=tab]"));
+    tabs.forEach((b, i) => {
+      b.addEventListener("click", () => {
+        showTab(b.dataset.tab);
+        try { history.replaceState(null, "", "#" + b.dataset.tab); } catch (e) { /* ignore */ }
+      });
+      b.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+        next.focus();
+        next.click();
+      });
+    });
+    const fromHash = location.hash.slice(1);
+    showTab(tabs.some((b) => b.dataset.tab === fromHash) ? fromHash : "predict");
+  }
+
   async function init() {
+    initTabs();
     applyLanguage(initialLanguage());
     document.querySelectorAll("[data-lang]").forEach((b) =>
       b.addEventListener("click", () => applyLanguage(b.dataset.lang))
@@ -546,6 +590,8 @@
       })
     );
     $("form").addEventListener("submit", predict);
+    ["airT", "processT", "speed", "torque", "wear"].forEach((id) => $(id).addEventListener("input", () => predict()));
+    $("type").addEventListener("change", () => predict());
     setInputs(PRESETS.normal);
     predict();
   }
