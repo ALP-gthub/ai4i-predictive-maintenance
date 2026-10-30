@@ -14,7 +14,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="An engineer's hands holding a handwritten field notebook in a dark machining workshop.">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 <header class="appbar">
@@ -39,6 +39,7 @@
     <button type="button" role="tab" id="t-predict" data-tab="predict" aria-controls="tab-predict" aria-selected="true" data-i18n="tab_predict">Prediction</button>
     <button type="button" role="tab" id="t-cost" data-tab="cost" aria-controls="tab-cost" aria-selected="false" data-i18n="tab_cost">Cost decision</button>
     <button type="button" role="tab" id="t-eval" data-tab="eval" aria-controls="tab-eval" aria-selected="false" data-i18n="tab_eval">Model evaluation</button>
+    <button type="button" role="tab" id="t-how" data-tab="how" aria-controls="tab-how" aria-selected="false" data-i18n="tab_how">How it works</button>
   </div>
 </nav>
 
@@ -190,6 +191,11 @@
       </div>
     </div>
   </section>
+  <!-- How it works -->
+  <section role="tabpanel" id="tab-how" aria-labelledby="t-how" hidden>
+    <p class="intro" data-i18n="how_intro"></p>
+    <div class="panel"><div class="panelbody steps" id="howSteps"></div></div>
+  </section>
 </main>
 
 <footer>
@@ -197,7 +203,7 @@
   <p data-i18n-html="footer"></p>
 </footer>
 
-<script src="model.js?v=8"></script>
-<script src="app.js?v=8"></script>
+<script src="model.js?v=9"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

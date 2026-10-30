@@ -42,6 +42,18 @@
     en: {
       doc_title: "Failure Prediction with Engineering Knowledge",
       tab_predict: "Prediction",
+      tab_how: "How it works",
+      how_intro: "What the page does, step by step. Every number below is read from the result files of the study, not typed by hand.",
+      how: (f) => [
+        ["Data", `<p>AI4I 2020 Predictive Maintenance Dataset (UCI): ${f.rows} records of a milling process, ${f.failures} of them failures (${f.failPct}). The dataset is synthetic: it was generated to resemble real machine data, and its failures follow documented rules.</p><p>Each record has six measurements: product quality type (L, M, H), air temperature, process temperature, rotational speed, torque and tool wear. The dataset also marks which failure mode occurred (TWF, HDF, PWF, OSF, RNF). These marks are the answer, so they are never given to the model as inputs.</p>`],
+        ["Three engineering values", `<p>From the six measurements the page calculates three values an engineer would look at first. Each one matches a failure mechanism named in the dataset description.</p><table class="grid"><thead><tr><th>Value</th><th>Formula</th><th>Related failure</th></tr></thead><tbody><tr><td>Temperature difference</td><td>process temperature − air temperature [K]</td><td>Heat dissipation (HDF)</td></tr><tr><td>Mechanical power</td><td>torque × rotational speed × 2π / 60 [W]</td><td>Power (PWF)</td></tr><tr><td>Tool load</td><td>tool wear × torque [min·Nm]</td><td>Overstrain (OSF)</td></tr></tbody></table>`],
+        ["Model", `<p>Gradient boosting classifier (scikit-learn ${f.sklearn}, HistGradientBoostingClassifier, default settings, seed ${f.seed}). Inputs: the five numeric measurements, the quality type as a code (L=0, M=1, H=2) and the three engineering values. Output: a failure probability between 0 and 1. At 50 % or above the page shows "Failure expected".</p><p>For comparison, the same algorithm was also trained without the three engineering values, and a logistic regression was trained on the raw measurements. The results are on the Model evaluation tab.</p>`],
+        ["Training and test", `<p>The records were split once, keeping the failure share equal in both parts: ${f.train} records for training and ${f.test} for testing (${f.testFail} real failures). The test records were not used for training or for any choice; all results on this page are measured on them. Within the training data, five-fold cross-validation was used.</p>`],
+        ["Engineering check", `<p>Next to the model, the page checks the physical failure conditions given in the dataset description. Agreement of these rules with the dataset's own failure marks: ${f.ruleAgree} of records. The check is independent of the model and is shown for comparison.</p><table class="grid"><thead><tr><th>Failure mode</th><th>Condition</th></tr></thead><tbody><tr><td>Heat dissipation (HDF)</td><td>temperature difference &lt; 8.6 K and rotational speed &lt; 1,380 rpm</td></tr><tr><td>Power (PWF)</td><td>mechanical power &lt; 3,500 W or &gt; 9,000 W</td></tr><tr><td>Overstrain (OSF)</td><td>tool load &gt; 11,000 (L), 12,000 (M), 13,000 (H) min·Nm</td></tr></tbody></table><p>Tool wear failures (TWF) and random failures (RNF) are assigned at random in the dataset, so no rule or model can predict them.</p>`],
+        ["Cost decision", `<p>Total cost = missed failures × cost of one unplanned failure + alarms × cost of one inspection.</p><p>Assumptions: every alarm leads to one inspection, an inspection prevents the failure it caught, and every missed failure becomes an unplanned failure. The page tries every possible alarm threshold on the training data (out-of-fold predictions) and keeps the cheapest one. That threshold is then applied to the ${f.test} test records, which played no part in the choice. Only the ratio of the two costs matters, so any currency works.</p>`],
+        ["Runs in your browser, checked against Python", `<p>The trained model was exported as decision trees and is calculated in your browser; nothing you enter is sent anywhere. Before publishing, the browser calculation was compared with the original Python model on ${f.dataRows} dataset records and ${f.random} random inputs: ${f.mismatch} decision differences. The cost calculation was compared with an independent Python implementation in ${f.costCases} cases: ${f.costDiff} differences.</p>`],
+        ["Limits", `<p>The model and its thresholds belong to this synthetic dataset, not to any real machine. What carries over to real equipment is the method: turning field knowledge into model inputs. Applying it to a pump, a compressor or a chiller needs that equipment's own data, its own engineering values and new training.</p>`],
+      ],
       aria_lang: "Language",
       aria_tabs: "Sections",
       aria_examples: "Examples",
@@ -162,6 +174,18 @@
     tr: {
       doc_title: "Mühendislik Bilgisiyle Arıza Tahmini",
       tab_predict: "Tahmin",
+      tab_how: "Nasıl çalışır",
+      how_intro: "Sayfanın ne yaptığı, adım adım. Aşağıdaki tüm sayılar çalışmanın sonuç dosyalarından okunur, elle yazılmamıştır.",
+      how: (f) => [
+        ["Veri", `<p>AI4I 2020 Predictive Maintenance Dataset (UCI): bir freze prosesine ait ${f.rows} kayıt, bunların ${f.failures} tanesi arıza (${f.failPct}). Veri seti sentetiktir: gerçek makine verisine benzemesi için üretilmiştir ve arızaları belgelenmiş kurallara göre oluşur.</p><p>Her kayıtta altı ölçüm vardır: ürün kalite tipi (L, M, H), ortam havası sıcaklığı, proses sıcaklığı, devir hızı, tork ve takım aşınması. Veri setinde hangi arıza türünün oluştuğu da işaretlidir (TWF, HDF, PWF, OSF, RNF). Bu işaretler cevabın kendisidir; bu yüzden modele hiçbir zaman girdi olarak verilmez.</p>`],
+        ["Üç mühendislik değeri", `<p>Sayfa altı ölçümden, bir mühendisin ilk bakacağı üç değeri hesaplar. Her biri veri seti açıklamasında adı geçen bir arıza mekanizmasına karşılık gelir.</p><table class="grid"><thead><tr><th>Değer</th><th>Formül</th><th>İlgili arıza</th></tr></thead><tbody><tr><td>Sıcaklık farkı</td><td>proses sıcaklığı − ortam sıcaklığı [K]</td><td>Isı dağılımı (HDF)</td></tr><tr><td>Mekanik güç</td><td>tork × devir × 2π / 60 [W]</td><td>Güç (PWF)</td></tr><tr><td>Takım yükü</td><td>takım aşınması × tork [min·Nm]</td><td>Aşırı zorlanma (OSF)</td></tr></tbody></table>`],
+        ["Model", `<p>Gradyan artırma (gradient boosting) sınıflandırıcısı (scikit-learn ${f.sklearn}, HistGradientBoostingClassifier, varsayılan ayarlar, tohum değeri ${f.seed}). Girdiler: beş sayısal ölçüm, kod olarak kalite tipi (L=0, M=1, H=2) ve üç mühendislik değeri. Çıktı: 0 ile 1 arasında bir arıza olasılığı. Olasılık %50 veya üzerindeyse sayfa "Arıza bekleniyor" gösterir.</p><p>Karşılaştırma için aynı algoritma üç mühendislik değeri olmadan da eğitildi; ham ölçümlerle bir lojistik regresyon modeli de kuruldu. Sonuçlar Model değerlendirmesi sekmesindedir.</p>`],
+        ["Eğitim ve test", `<p>Kayıtlar, arıza oranı iki tarafta eşit kalacak şekilde bir kez bölündü: eğitim için ${f.train}, test için ${f.test} kayıt (${f.testFail} gerçek arıza). Test kayıtları ne eğitimde ne de herhangi bir seçimde kullanıldı; sayfadaki tüm sonuçlar bu kayıtlarda ölçüldü. Eğitim verisi içinde beş katlı çapraz doğrulama yapıldı.</p>`],
+        ["Mühendislik kontrolü", `<p>Sayfa, modelin yanında veri seti açıklamasında verilen fiziksel arıza koşullarını da kontrol eder. Bu kuralların veri setinin kendi arıza işaretleriyle örtüşme oranı: ${f.ruleAgree}. Kontrol modelden bağımsızdır ve karşılaştırma için gösterilir.</p><table class="grid"><thead><tr><th>Arıza türü</th><th>Koşul</th></tr></thead><tbody><tr><td>Isı dağılımı (HDF)</td><td>sıcaklık farkı &lt; 8,6 K ve devir &lt; 1.380 rpm</td></tr><tr><td>Güç (PWF)</td><td>mekanik güç &lt; 3.500 W veya &gt; 9.000 W</td></tr><tr><td>Aşırı zorlanma (OSF)</td><td>takım yükü &gt; 11.000 (L), 12.000 (M), 13.000 (H) min·Nm</td></tr></tbody></table><p>Takım aşınması (TWF) ve rastgele arızalar (RNF) veri setinde rastgele atanır; bu yüzden hiçbir kural ya da model bunları tahmin edemez.</p>`],
+        ["Maliyet kararı", `<p>Toplam maliyet = kaçan arıza sayısı × bir plansız arızanın maliyeti + alarm sayısı × bir kontrolün maliyeti.</p><p>Varsayımlar: her alarm bir kontrole yol açar, kontrol yakaladığı arızayı önler, kaçan her arıza plansız arızaya dönüşür. Sayfa, eğitim verisinde (çapraz doğrulama tahminleri) olası tüm alarm eşiklerini dener ve en ucuzunu seçer. Bu eşik, seçimde hiç kullanılmayan ${f.test} test kaydına uygulanır. Yalnızca iki maliyetin oranı önemlidir; para birimi fark etmez.</p>`],
+        ["Tarayıcıda çalışır, Python ile doğrulanmıştır", `<p>Eğitilen model karar ağaçları olarak dışa aktarıldı ve tarayıcınızda hesaplanır; girdiğiniz hiçbir değer bir yere gönderilmez. Yayından önce tarayıcıdaki hesap, orijinal Python modeliyle ${f.dataRows} veri kaydında ve ${f.random} rastgele girdide karşılaştırıldı: karar farkı ${f.mismatch}. Maliyet hesabı bağımsız bir Python hesabıyla ${f.costCases} senaryoda karşılaştırıldı: fark ${f.costDiff}.</p>`],
+        ["Sınırlar", `<p>Model ve eşikleri bu sentetik veri setine aittir, gerçek bir makineye ait değildir. Gerçek ekipmana taşınabilen şey yöntemdir: saha bilgisini modele girdi olarak vermek. Bunu bir pompaya, kompresöre ya da chiller'a uygulamak için o ekipmanın kendi verisi, kendi mühendislik değerleri ve yeni bir eğitim gerekir.</p>`],
+      ],
       aria_lang: "Dil",
       aria_tabs: "Bölümler",
       aria_examples: "Örnekler",
@@ -451,6 +475,7 @@
     }).join("");
 
     renderModeChart(sizes.rows);
+    renderHow();
     $("webcheck").textContent = t("webcheck")({
       rows: fmt(check.dataset_rows_compared, 0),
       random: fmt(check.random_rows_compared, 0),
@@ -474,6 +499,30 @@
       `<div class="axis"><div></div><div class="ticks">${[0, 25, 50, 75, 100].map((v) => `<span style="left:${v}%">${lang === "tr" ? "%" + v : v + "%"}</span>`).join("")}</div></div>`;
     $("modeChart").setAttribute("aria-label", t("chart_alt"));
     $("chartNote").textContent = t("chart_note")(rows);
+  }
+
+  function renderHow() {
+    const d = metrics.dataset;
+    const agree = Math.min(...Object.values(metrics.documented_rule_agreement));
+    const f = {
+      rows: fmt(d.rows, 0),
+      failures: fmt(d.machine_failure, 0),
+      failPct: pct(d.machine_failure / d.rows),
+      train: fmt(metrics.split.train_rows, 0),
+      test: fmt(metrics.split.test_rows, 0),
+      testFail: metrics.split.test_failures,
+      seed: metrics.split.seed,
+      sklearn: metrics.environment.scikit_learn,
+      ruleAgree: pct(agree),
+      dataRows: fmt(check.dataset_rows_compared, 0),
+      random: fmt(check.random_rows_compared, 0),
+      mismatch: check.decision_mismatches_at_0_5,
+      costCases: check.cost_cases_compared,
+      costDiff: check.cost_differences,
+    };
+    $("howSteps").innerHTML = t("how")(f)
+      .map(([h, body], i) => `<section class="step"><div class="stepno">${i + 1}</div><div><h2>${h}</h2>${body}</div></section>`)
+      .join("");
   }
 
   // ---------- Decision by cost ----------
