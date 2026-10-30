@@ -73,7 +73,12 @@
       cost_in_h2: "Cost inputs",
       cost_out_h2: "Result on the test records",
       live_note: "Results update as you type.",
-      examples_h: "Examples",
+      examples_h: "Load a sample scenario",
+      preset_hint: "Fills all fields below with a sample operating condition. You can then change any value.",
+      pd_normal: "Normal operation: temperature difference 10.0 K, power 6,283 W, tool load 4,000 min·Nm. No documented failure condition is met.",
+      pd_heat: "Heat dissipation failure: temperature difference 8.2 K at 1,300 rpm. Condition: below 8.6 K and below 1,380 rpm.",
+      pd_strain: "Overstrain failure: type M, tool load 210 min × 60 Nm = 12,600 min·Nm. Limit for type M: 12,000 min·Nm.",
+      pd_power: "Power failure: 10 Nm at 2,800 rpm gives 2,932 W. Condition: below 3,500 W or above 9,000 W.",
       site_title: "Failure Prediction",
       site_sub: "Field knowledge meets machine learning",
       source: "Source on GitHub",
@@ -100,10 +105,10 @@
       try_h2: "Try it yourself",
       try_p: "Enter the conditions of a milling process. The model estimates the failure probability, and the documented physical failure conditions are checked next to it. Everything runs in your browser.",
       examples: "Examples:",
-      p_normal: "Normal",
-      p_heat: "Heat dissipation",
-      p_strain: "Overstrain",
-      p_power: "Low power",
+      p_normal: "Normal operation",
+      p_heat: "Heat dissipation failure",
+      p_strain: "Overstrain failure",
+      p_power: "Power failure",
       l_type: "Product quality type",
       t_L: "L (low)",
       t_M: "M (medium)",
@@ -208,7 +213,12 @@
       cost_in_h2: "Maliyet girdileri",
       cost_out_h2: "Test kayıtlarındaki sonuç",
       live_note: "Sonuçlar siz yazdıkça güncellenir.",
-      examples_h: "Örnekler",
+      examples_h: "Hazır senaryo yükle",
+      preset_hint: "Aşağıdaki tüm alanları örnek bir çalışma durumuyla doldurur. Sonra istediğiniz değeri değiştirebilirsiniz.",
+      pd_normal: "Normal çalışma: sıcaklık farkı 10,0 K, güç 6.283 W, takım yükü 4.000 min·Nm. Belgelenmiş hiçbir arıza koşulu oluşmuyor.",
+      pd_heat: "Isı dağılımı arızası: 1.300 rpm devirde sıcaklık farkı 8,2 K. Koşul: 8,6 K altı ve 1.380 rpm altı.",
+      pd_strain: "Aşırı zorlanma arızası: M tipi, takım yükü 210 min × 60 Nm = 12.600 min·Nm. M tipi için sınır: 12.000 min·Nm.",
+      pd_power: "Güç arızası: 2.800 rpm devirde 10 Nm tork, 2.932 W güç verir. Koşul: 3.500 W altı veya 9.000 W üstü.",
       site_title: "Arıza Tahmini",
       site_sub: "Saha bilgisi ile makine öğrenmesi",
       source: "GitHub'da kaynak kod",
@@ -235,10 +245,10 @@
       try_h2: "Kendiniz deneyin",
       try_p: "Bir freze prosesinin koşullarını girin. Model arıza olasılığını tahmin eder; yanında veri setinde belgelenen fiziksel arıza koşulları kontrol edilir. Tüm hesaplama tarayıcınızda yapılır.",
       examples: "Örnekler:",
-      p_normal: "Normal",
-      p_heat: "Isı dağılımı",
-      p_strain: "Aşırı zorlanma",
-      p_power: "Düşük güç",
+      p_normal: "Normal çalışma",
+      p_heat: "Isı dağılımı arızası",
+      p_strain: "Aşırı zorlanma arızası",
+      p_power: "Güç arızası",
       l_type: "Ürün kalite tipi",
       t_L: "L (düşük)",
       t_M: "M (orta)",
@@ -614,6 +624,7 @@
       /* storage unavailable: the choice is simply not remembered */
     }
     updateKHints();
+    if ($("presetDesc")) setPreset(preset);
     if (metrics) renderStudy();
     if (model) render(lastInput);
     renderCost();
@@ -627,6 +638,14 @@
       /* ignore */
     }
     return (navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en";
+  }
+
+  // ---------- Sample scenarios ----------
+  let preset = null;
+  function setPreset(name) {
+    preset = name;
+    document.querySelectorAll("[data-preset]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.preset === name)));
+    $("presetDesc").textContent = name ? t("pd_" + name) : t("preset_hint");
   }
 
   // ---------- Tabs ----------
@@ -688,13 +707,15 @@
     document.querySelectorAll("[data-preset]").forEach((b) =>
       b.addEventListener("click", () => {
         setInputs(PRESETS[b.dataset.preset]);
+        setPreset(b.dataset.preset);
         predict();
       })
     );
     $("form").addEventListener("submit", predict);
-    ["airT", "processT", "speed", "torque", "wear"].forEach((id) => $(id).addEventListener("input", () => predict()));
-    $("type").addEventListener("change", () => predict());
+    ["airT", "processT", "speed", "torque", "wear"].forEach((id) => $(id).addEventListener("input", () => { setPreset(null); predict(); }));
+    $("type").addEventListener("change", () => { setPreset(null); predict(); });
     setInputs(PRESETS.normal);
+    setPreset("normal");
     predict();
   }
 

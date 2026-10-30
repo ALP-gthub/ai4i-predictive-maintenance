@@ -154,3 +154,7 @@ footer b{color:var(--warn)}
 .brand small.example strong{color:#f5b041;font-weight:700;background:rgba(245,176,65,.12);border:1px solid rgba(245,176,65,.45);border-radius:999px;padding:1px 9px}
 .brand small.example .sep{width:4px;height:4px;border-radius:50%;background:#5d6975}
 @media(max-width:560px){.brand small.example{display:flex}.brand small.example>span:not([data-i18n=ex_label]){display:none}}
+/* Sample scenarios */
+.presets button[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.presetdesc{background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-top:8px}
+.fields{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}

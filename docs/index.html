@@ -14,7 +14,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="An engineer's hands holding a handwritten field notebook in a dark machining workshop.">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 <header class="appbar">
@@ -54,11 +54,12 @@
           <div class="field">
             <span class="flabel" data-i18n="examples_h">Examples</span>
             <div class="presets" role="group" aria-label="Examples" data-i18n-aria="aria_examples">
-              <button type="button" data-preset="normal" data-i18n="p_normal">Normal</button>
-              <button type="button" data-preset="heat" data-i18n="p_heat">Heat dissipation</button>
-              <button type="button" data-preset="strain" data-i18n="p_strain">Overstrain</button>
-              <button type="button" data-preset="power" data-i18n="p_power">Low power</button>
+              <button type="button" aria-pressed="false" data-preset="normal" data-i18n="p_normal">Normal</button>
+              <button type="button" aria-pressed="false" data-preset="heat" data-i18n="p_heat">Heat dissipation</button>
+              <button type="button" aria-pressed="false" data-preset="strain" data-i18n="p_strain">Overstrain</button>
+              <button type="button" aria-pressed="false" data-preset="power" data-i18n="p_power">Low power</button>
             </div>
+            <p class="hint presetdesc" id="presetDesc" aria-live="polite"></p>
           </div>
           <div class="fields">
             <label class="field"><span class="flabel" data-i18n="l_type">Product quality type</span>
@@ -203,7 +204,7 @@
   <p data-i18n-html="footer"></p>
 </footer>
 
-<script src="model.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<script src="model.js?v=11"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>
