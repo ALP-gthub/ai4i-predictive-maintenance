@@ -45,18 +45,21 @@
       site_sub: "Field knowledge meets machine learning",
       source: "Source on GitHub",
       kicker: "MACHINE LEARNING THROUGH AN ENGINEER'S EYES",
-      hero_title: (raw, eng) => `Three values a maintenance engineer checks first cut missed failures from ${raw} to ${eng}.`,
-      hero_lede: "Same data, same algorithm. The difference was the question.",
+      hero_title: "Milling Machine Failure Prediction",
+      hero_lede: "Enter the process conditions and get a failure probability, checked against the documented physical failure conditions.",
+      cmp_h3: "What the three engineering values added",
+      cmp_intro: (s) => `The same model was trained twice on the same data: first with raw sensor data only, then with the three engineering values added. Results on the same test set:`,
+      stat_missed_d: "Real failure, no alarm",
+      stat_false_d: "Alarm, no failure",
       cmp_metric: "Result",
       cmp_raw: "Raw sensor data only",
       cmp_eng: "+ 3 engineering values",
       cmp_change: "Change",
       fewer: (p) => `${p} fewer`,
       phys_line: (caught, total) => `Of the ${total} failures with a physical cause, ${caught} were caught.`,
-      hero_p: "A failure prediction model was trained twice on the same data. The second time, it also received three values an experienced maintenance engineer checks first: temperature difference, mechanical power and tool load. Nothing else changed.",
+      hero_p: "A machine learning model that also uses three values a maintenance engineer checks first: temperature difference, mechanical power and tool load. Everything runs in your browser.",
       stat_missed: "Missed failures",
       stat_false: "False alarms",
-      stats_note: (s) => `Held-out test set of ${s.rows} records the model never saw, with ${s.failures} real failures.`,
       try_h2: "Try it yourself",
       try_p: "Enter the conditions of a milling process. The model estimates the failure probability, and the documented physical failure conditions are checked next to it. Everything runs in your browser.",
       examples: "Examples:",
@@ -140,18 +143,21 @@
       site_sub: "Saha bilgisi ile makine öğrenmesi",
       source: "GitHub'da kaynak kod",
       kicker: "MÜHENDİS GÖZÜYLE MAKİNE ÖĞRENMESİ",
-      hero_title: (raw, eng) => `Bir bakım mühendisinin baktığı üç değer, kaçan arızaları ${raw}${trAbl(raw)} ${eng}${trDat(eng)} indirdi.`,
-      hero_lede: "Aynı veri, aynı algoritma. Farkı yaratan soruydu.",
+      hero_title: "Freze Tezgâhı Arıza Tahmini",
+      hero_lede: "Proses değerlerini girin; arıza olasılığını görün ve belgelenmiş fiziksel arıza koşullarıyla karşılaştırın.",
+      cmp_h3: "Üç mühendislik değeri ne kattı?",
+      cmp_intro: (s) => `Aynı model aynı veriyle iki kez eğitildi: önce yalnızca ham sensör verisiyle, sonra üç mühendislik değeri eklenerek. Aynı test setindeki sonuçlar:`,
+      stat_missed_d: "Gerçek arıza, alarm yok",
+      stat_false_d: "Alarm var, arıza yok",
       cmp_metric: "Sonuç",
       cmp_raw: "Yalnızca ham sensör verisi",
       cmp_eng: "+ 3 mühendislik değeri",
       cmp_change: "Değişim",
       fewer: (p) => `${p} daha az`,
       phys_line: (caught, total) => `Fiziksel nedeni olan ${total} arızadan ${caught} tanesi yakalandı.`,
-      hero_p: "Bir arıza tahmin modeli aynı veriyle iki kez eğitildi. İkincisinde, deneyimli bir bakım mühendisinin ilk baktığı üç değer de modele verildi: sıcaklık farkı, mekanik güç ve takım yükü. Başka hiçbir şey değişmedi.",
+      hero_p: "Bir bakım mühendisinin ilk baktığı üç değeri de kullanan bir makine öğrenmesi modeli: sıcaklık farkı, mekanik güç ve takım yükü. Tüm hesaplama tarayıcınızda yapılır.",
       stat_missed: "Kaçırılan arıza",
       stat_false: "Yanlış alarm",
-      stats_note: (s) => `Modelin hiç görmediği ${s.rows} kayıtlık test seti, ${s.failures} gerçek arıza.`,
       try_h2: "Kendiniz deneyin",
       try_p: "Bir freze prosesinin koşullarını girin. Model arıza olasılığını tahmin eder; yanında veri setinde belgelenen fiziksel arıza koşulları kontrol edilir. Tüm hesaplama tarayıcınızda yapılır.",
       examples: "Örnekler:",
@@ -382,7 +388,6 @@
     const phys = physical(metrics.test_caught_by_failure_mode.boosting_engineered);
     const sizes = { rows: fmt(s.test_rows, 0), failures: s.test_failures, seed: s.seed };
 
-    $("heroTitle").textContent = t("hero_title")(raw.fn, eng.fn);
     $("missedRaw").textContent = raw.fn;
     $("missedEng").textContent = eng.fn;
     $("fpRaw").textContent = raw.fp;
@@ -391,7 +396,7 @@
     $("missedDelta").textContent = t("fewer")(drop(raw.fn, eng.fn));
     $("fpDelta").textContent = t("fewer")(drop(raw.fp, eng.fp));
     $("physLine").textContent = t("phys_line")(phys.caught, phys.total);
-    $("statsNote").textContent = t("stats_note")(sizes);
+    $("cmpIntro").textContent = t("cmp_intro")(sizes);
     $("split").textContent = t("split")(sizes);
 
     $("results").innerHTML = APPROACHES.map((k) => {

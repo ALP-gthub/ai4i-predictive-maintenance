@@ -31,37 +31,9 @@
 <main>
   <section class="hero">
     <small data-i18n="kicker">MACHINE LEARNING THROUGH AN ENGINEER'S EYES</small>
-    <h1 id="heroTitle">Three values a maintenance engineer checks first cut missed failures from 21 to 12.</h1>
-    <p class="lede" data-i18n="hero_lede">Same data, same algorithm. The difference was the question.</p>
-    <p data-i18n="hero_p">A failure prediction model was trained twice on the same data. The second time, it also received three values an experienced maintenance engineer checks first: temperature difference, mechanical power and tool load. Nothing else changed.</p>
-    <div class="compare">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col"><span class="sr" data-i18n="cmp_metric">Result</span></th>
-            <th scope="col" data-i18n="cmp_raw">Raw sensor data only</th>
-            <th scope="col" class="after" data-i18n="cmp_eng">+ 3 engineering values</th>
-            <th scope="col" data-i18n="cmp_change">Change</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row" data-i18n="stat_missed">Missed failures</th>
-            <td class="before" id="missedRaw">–</td>
-            <td class="after" id="missedEng">–</td>
-            <td class="delta" id="missedDelta">–</td>
-          </tr>
-          <tr>
-            <th scope="row" data-i18n="stat_false">False alarms</th>
-            <td class="before" id="fpRaw">–</td>
-            <td class="after" id="fpEng">–</td>
-            <td class="delta" id="fpDelta">–</td>
-          </tr>
-        </tbody>
-      </table>
-      <p id="physLine"></p>
-    </div>
-    <p class="muted" id="statsNote"></p>
+    <h1 data-i18n="hero_title">Milling Machine Failure Prediction</h1>
+    <p class="lede" data-i18n="hero_lede">Enter the process conditions and get a failure probability, checked against the documented physical failure conditions.</p>
+    <p data-i18n="hero_p">A machine learning model that also uses three values a maintenance engineer checks first: temperature difference, mechanical power and tool load. Everything runs in your browser.</p>
   </section>
 
   <section class="grid">
@@ -138,6 +110,35 @@
   <section class="card study">
     <h2 data-i18n="eval_h2">How the model was evaluated</h2>
     <p id="split" class="muted"></p>
+    <h3 data-i18n="cmp_h3">What the three engineering values added</h3>
+    <p class="muted" id="cmpIntro"></p>
+    <div class="compare">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col"><span class="sr" data-i18n="cmp_metric">Result</span></th>
+            <th scope="col" data-i18n="cmp_raw">Raw sensor data only</th>
+            <th scope="col" class="after" data-i18n="cmp_eng">+ 3 engineering values</th>
+            <th scope="col" data-i18n="cmp_change">Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row"><span data-i18n="stat_missed">Missed failures</span><small class="rowhint" data-i18n="stat_missed_d"></small></th>
+            <td class="before" id="missedRaw">–</td>
+            <td class="after" id="missedEng">–</td>
+            <td class="delta" id="missedDelta">–</td>
+          </tr>
+          <tr>
+            <th scope="row"><span data-i18n="stat_false">False alarms</span><small class="rowhint" data-i18n="stat_false_d"></small></th>
+            <td class="before" id="fpRaw">–</td>
+            <td class="after" id="fpEng">–</td>
+            <td class="delta" id="fpDelta">–</td>
+          </tr>
+        </tbody>
+      </table>
+      <p id="physLine"></p>
+    </div>
     <div class="tablewrap">
       <table class="results">
         <thead><tr><th data-i18n="th_approach">Approach</th><th data-i18n="th_precision">Precision</th><th data-i18n="th_recall">Recall</th><th>F1</th><th data-i18n="th_missed">Missed failures</th><th data-i18n="th_false">False alarms</th></tr></thead>
