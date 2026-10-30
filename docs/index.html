@@ -14,7 +14,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="An engineer's hands holding a handwritten field notebook in a dark machining workshop.">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <header class="appbar">
@@ -26,7 +26,7 @@
     </div>
   </div>
   <div class="headright">
-    <div class="lang" role="group" aria-label="Language">
+    <div class="lang" role="group" aria-label="Language" data-i18n-aria="aria_lang">
       <button type="button" data-lang="tr" aria-pressed="false">TR</button>
       <button type="button" data-lang="en" aria-pressed="true">EN</button>
     </div>
@@ -35,7 +35,7 @@
 </header>
 
 <nav class="tabbar">
-  <div class="tabs" role="tablist" aria-label="Sections">
+  <div class="tabs" role="tablist" aria-label="Sections" data-i18n-aria="aria_tabs">
     <button type="button" role="tab" id="t-predict" data-tab="predict" aria-controls="tab-predict" aria-selected="true" data-i18n="tab_predict">Prediction</button>
     <button type="button" role="tab" id="t-cost" data-tab="cost" aria-controls="tab-cost" aria-selected="false" data-i18n="tab_cost">Cost decision</button>
     <button type="button" role="tab" id="t-eval" data-tab="eval" aria-controls="tab-eval" aria-selected="false" data-i18n="tab_eval">Model evaluation</button>
@@ -52,7 +52,7 @@
         <div class="panelbody">
           <div class="field">
             <span class="flabel" data-i18n="examples_h">Examples</span>
-            <div class="presets" role="group" aria-label="Examples">
+            <div class="presets" role="group" aria-label="Examples" data-i18n-aria="aria_examples">
               <button type="button" data-preset="normal" data-i18n="p_normal">Normal</button>
               <button type="button" data-preset="heat" data-i18n="p_heat">Heat dissipation</button>
               <button type="button" data-preset="strain" data-i18n="p_strain">Overstrain</button>
@@ -65,7 +65,7 @@
             </label>
             <div class="field">
               <span class="flabel" data-i18n="unit_label">Temperature unit</span>
-              <div class="seg" role="group" aria-label="Temperature unit">
+              <div class="seg" role="group" aria-label="Temperature unit" data-i18n-aria="aria_unit">
                 <button type="button" data-unit="C" aria-pressed="true">°C</button>
                 <button type="button" data-unit="K" aria-pressed="false">K</button>
               </div>
@@ -182,7 +182,10 @@
             <tbody id="results"></tbody>
           </table>
         </div>
-        <img src="caught_by_mode.png" alt="Bar chart: share of actual test failures caught by failure mode, for gradient boosting with raw measurements and with engineered features.">
+        <h3 data-i18n="chart_h">Share of actual test failures caught, by failure mode</h3>
+        <div class="legend"><span><i class="sw eng"></i><span data-i18n="chart_eng"></span></span><span><i class="sw raw"></i><span data-i18n="chart_raw"></span></span></div>
+        <div class="bars" id="modeChart" role="img"></div>
+        <p class="hint" id="chartNote"></p>
         <p class="hint" id="webcheck"></p>
       </div>
     </div>
@@ -194,7 +197,7 @@
   <p data-i18n-html="footer"></p>
 </footer>
 
-<script src="model.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="model.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

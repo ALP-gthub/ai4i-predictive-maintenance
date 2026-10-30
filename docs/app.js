@@ -42,6 +42,19 @@
     en: {
       doc_title: "Failure Prediction with Engineering Knowledge",
       tab_predict: "Prediction",
+      aria_lang: "Language",
+      aria_tabs: "Sections",
+      aria_examples: "Examples",
+      aria_unit: "Temperature unit",
+      chart_h: "Share of actual test failures caught, by failure mode",
+      chart_eng: "Raw measurements + engineering features",
+      chart_raw: "Raw measurements only",
+      chart_note: (rows) => `Gradient boosting, held-out test set of ${rows} records. Labels show caught / total failures. Failures with more than one mode flag are not shown in this chart.`,
+      chart_alt: "Bar chart of the share of actual test failures caught by failure mode, for raw measurements only and with engineering features.",
+      mode_HDF: "Heat dissipation (HDF)",
+      mode_OSF: "Overstrain (OSF)",
+      mode_PWF: "Power (PWF)",
+      mode_TWF: "Tool wear, random by design (TWF)",
       tab_cost: "Cost decision",
       tab_eval: "Model evaluation",
       in_h2: "Process inputs",
@@ -149,6 +162,19 @@
     tr: {
       doc_title: "Mühendislik Bilgisiyle Arıza Tahmini",
       tab_predict: "Tahmin",
+      aria_lang: "Dil",
+      aria_tabs: "Bölümler",
+      aria_examples: "Örnekler",
+      aria_unit: "Sıcaklık birimi",
+      chart_h: "Test setindeki gerçek arızaların yakalanma oranı, arıza türüne göre",
+      chart_eng: "Ham ölçümler + mühendislik özellikleri",
+      chart_raw: "Yalnızca ham ölçümler",
+      chart_note: (rows) => `Gradyan artırma modeli, eğitimde kullanılmayan ${rows} kayıtlık test seti. Etiketler yakalanan / toplam arıza sayısını gösterir. Birden fazla arıza türü işaretli kayıtlar bu grafikte gösterilmez.`,
+      chart_alt: "Arıza türüne göre test setindeki gerçek arızaların yakalanma oranı; yalnızca ham ölçümlerle ve mühendislik özellikleriyle.",
+      mode_HDF: "Isı dağılımı (HDF)",
+      mode_OSF: "Aşırı zorlanma (OSF)",
+      mode_PWF: "Güç (PWF)",
+      mode_TWF: "Takım aşınması, rastgele üretilmiş (TWF)",
       tab_cost: "Maliyet kararı",
       tab_eval: "Model değerlendirmesi",
       in_h2: "Proses girdileri",
@@ -225,8 +251,8 @@
       th_missed: "Kaçırılan arıza",
       th_false: "Yanlış alarm",
       a_logistic_raw: "Lojistik regresyon, ham ölçümler",
-      a_boosting_raw: "Gradient boosting, ham ölçümler",
-      a_boosting_engineered: "Gradient boosting, ham ölçümler + mühendislik özellikleri (bu sayfa)",
+      a_boosting_raw: "Gradyan artırma (gradient boosting), ham ölçümler",
+      a_boosting_engineered: "Gradyan artırma (gradient boosting), ham ölçümler + mühendislik özellikleri (bu sayfa)",
       a_documented_rules: "Belgelenen fiziksel kurallar (referans, öğrenme yok)",
       webcheck: (c) => `Tarayıcı kontrolü: Bu sayfa, Python modeliyle ${c.rows} veri satırında ve ${c.random} rastgele girdide karşılaştırıldı. Karar farkı: ${c.mismatch}. En büyük olasılık farkı: ${c.diff}.`,
       scope: "<b>Kapsam:</b> AI4I 2020 veri seti sentetiktir ve arızaları sabit kurallarla üretilmiştir. Burada gösterilen model ve eşikler bu veri setine aittir, gerçek bir makineye ait değildir. Bu sayfa öğrenme ve tanıtım amaçlıdır.",
@@ -424,12 +450,30 @@
         `<td>${fmt(r.f1, 3)}</td><td>${r.fn}</td><td>${r.fp}</td></tr>`;
     }).join("");
 
+    renderModeChart(sizes.rows);
     $("webcheck").textContent = t("webcheck")({
       rows: fmt(check.dataset_rows_compared, 0),
       random: fmt(check.random_rows_compared, 0),
       mismatch: check.decision_mismatches_at_0_5,
       diff: check.max_abs_probability_difference.toExponential(1).replace(".", lang === "tr" ? "," : "."),
     });
+  }
+
+  // Bar chart drawn from metrics.json, same data as results/caught_by_mode.png.
+  function renderModeChart(rows) {
+    const g = metrics.test_caught_by_failure_mode;
+    const bar = (cls, d) => {
+      const share = d.failures ? d.caught / d.failures : 0;
+      return `<div class="barrow"><div class="bar ${cls}" style="width:${(share * 100).toFixed(2)}%"></div>` +
+        `<span>${d.caught} / ${d.failures}</span></div>`;
+    };
+    $("modeChart").innerHTML = ["HDF", "OSF", "PWF", "TWF"].map((m) =>
+      `<div class="group"><div class="glabel">${t("mode_" + m)}</div><div class="gbars">` +
+      bar("eng", g.boosting_engineered[m]) + bar("raw", g.boosting_raw[m]) + `</div></div>`
+    ).join("") +
+      `<div class="axis"><div></div><div class="ticks">${[0, 25, 50, 75, 100].map((v) => `<span style="left:${v}%">${lang === "tr" ? "%" + v : v + "%"}</span>`).join("")}</div></div>`;
+    $("modeChart").setAttribute("aria-label", t("chart_alt"));
+    $("chartNote").textContent = t("chart_note")(rows);
   }
 
   // ---------- Decision by cost ----------
@@ -499,6 +543,9 @@
     document.title = t("doc_title");
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+      el.setAttribute("aria-label", t(el.dataset.i18nAria));
     });
     document.querySelectorAll("[data-i18n-html]").forEach((el) => {
       el.innerHTML = t(el.dataset.i18nHtml);
